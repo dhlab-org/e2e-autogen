@@ -59,7 +59,7 @@ class E2EAutogen implements TContract {
       }
 
       // 필요한 디렉토리 구조 생성
-      await this.#ensureDirectories();
+      await fs.ensureDir(outputDir);
 
       // 병렬로 파일 처리
       const processingPromises = jsonFiles.map((file) => {
@@ -102,18 +102,6 @@ class E2EAutogen implements TContract {
         error as Error
       );
     }
-  };
-
-  /**
-   * 필요한 디렉토리들을 생성합니다.
-   */
-  #ensureDirectories = async (): Promise<void> => {
-    const directories = [
-      DEFAULT_DIRECTORIES.generated,
-      DEFAULT_DIRECTORIES.playwright,
-    ];
-
-    await Promise.all(directories.map((dir) => fs.ensureDir(dir)));
   };
 
   /**
