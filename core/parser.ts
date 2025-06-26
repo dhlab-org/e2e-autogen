@@ -1,60 +1,39 @@
 import * as fs from "fs-extra";
 import {
   TScenarioData,
-  TScenarioParserContract,
   TValidationError,
   TProcessingError,
   VALIDATION_MESSAGES,
 } from "./types";
+import { JsonOptimizer } from "./optimizer";
 
-/**
- * 시나리오 JSON 파일 파싱 및 유효성 검증을 담당하는 클래스
- */
-class ScenarioParser implements TScenarioParserContract {
-  /**
-   * 시나리오 JSON 파일을 읽어서 파싱합니다.
-   * @param filePath 시나리오 JSON 파일 경로
-   * @returns 파싱된 시나리오 데이터 배열
-   * @throws {TProcessingError} 파일 읽기, JSON 파싱, 유효성 검증 실패 시
-   */
+class ScenarioParser implements TContract {
+  readonly #optimizer: JsonOptimizer;
+
+  constructor() {
+    this.#optimizer = new JsonOptimizer();
+  }
+
   async parseScenarioFile(filePath: string): Promise<TScenarioData[]> {
     try {
       // 파일 존재 여부 확인
       const fileExists = await fs.pathExists(filePath);
       if (!fileExists) {
-        throw this.createProcessingError(
+        throw this.#createProcessingError(
           "FILE_READ",
           `파일을 찾을 수 없습니다: ${filePath}`,
           filePath
         );
       }
 
-      // 파일 읽기
-      const fileContent = await fs.readFile(filePath, "utf-8");
-
-      // JSON 파싱
-      let scenarios: TScenarioData[];
-      try {
-        scenarios = JSON.parse(fileContent);
-      } catch (parseError) {
-        throw this.createProcessingError(
-          "JSON_PARSE",
-          `JSON 파싱 실패: 올바른 JSON 형식이 아닙니다`,
-          filePath,
-          parseError as Error
-        );
-      }
-
-      // 데이터 유효성 검증
-      this.validateScenarios(scenarios);
-
-      return scenarios;
+      // 모든 JSON은 flat 구조이므로 optimizer를 사용하여 처리
+      return await this.#optimizer.optimizeJsonFile(filePath);
     } catch (error) {
-      if (this.isProcessingError(error)) {
+      if (this.#isProcessingError(error)) {
         throw error;
       }
 
-      throw this.createProcessingError(
+      throw this.#createProcessingError(
         "FILE_READ",
         `시나리오 파일 파싱 실패: ${
           error instanceof Error ? error.message : String(error)
@@ -65,11 +44,6 @@ class ScenarioParser implements TScenarioParserContract {
     }
   }
 
-  /**
-   * 시나리오 데이터의 유효성을 검증합니다.
-   * @param scenarios 검증할 시나리오 데이터
-   * @throws {TProcessingError} 유효성 검증 실패 시
-   */
   validateScenarios(scenarios: TScenarioData[]): void {
     const errors: TValidationError[] = [];
 
@@ -79,7 +53,7 @@ class ScenarioParser implements TScenarioParserContract {
         type: "INVALID_TYPE",
         message: "시나리오 데이터는 배열이어야 합니다",
       });
-      throw this.createValidationProcessingError(errors);
+      throw this.#createValidationProcessingError(errors);
     }
 
     // 빈 배열 검증
@@ -88,26 +62,20 @@ class ScenarioParser implements TScenarioParserContract {
         type: "EMPTY_ARRAY",
         message: "시나리오 데이터가 비어있습니다",
       });
-      throw this.createValidationProcessingError(errors);
+      throw this.#createValidationProcessingError(errors);
     }
 
     // 각 시나리오 검증
     scenarios.forEach((scenario, index) => {
-      this.validateScenario(scenario, index, errors);
+      this.#validateScenario(scenario, index, errors);
     });
 
     if (errors.length > 0) {
-      throw this.createValidationProcessingError(errors);
+      throw this.#createValidationProcessingError(errors);
     }
   }
 
-  /**
-   * 개별 시나리오의 유효성을 검증합니다.
-   * @param scenario 검증할 시나리오
-   * @param index 시나리오 인덱스
-   * @param errors 에러 배열 (참조로 전달)
-   */
-  private validateScenario(
+  #validateScenario(
     scenario: TScenarioData,
     index: number,
     errors: TValidationError[]
@@ -124,7 +92,7 @@ class ScenarioParser implements TScenarioParserContract {
       if (!scenario[field]) {
         errors.push({
           type: "MISSING_FIELD",
-          message: `시나리오 ${index}: ${this.getValidationMessage(field)}`,
+          message: `시나리오 ${index}: ${this.#getValidationMessage(field)}`,
           index,
           field,
         });
@@ -145,19 +113,12 @@ class ScenarioParser implements TScenarioParserContract {
     // 각 테스트 케이스 검증
     if (Array.isArray(scenario.tests)) {
       scenario.tests.forEach((test, testIndex) => {
-        this.validateTestCase(test, index, testIndex, errors);
+        this.#validateTestCase(test, index, testIndex, errors);
       });
     }
   }
 
-  /**
-   * 개별 테스트 케이스의 유효성을 검증합니다.
-   * @param test 검증할 테스트 케이스
-   * @param scenarioIndex 시나리오 인덱스
-   * @param testIndex 테스트 인덱스
-   * @param errors 에러 배열 (참조로 전달)
-   */
-  private validateTestCase(
+  #validateTestCase(
     test: any,
     scenarioIndex: number,
     testIndex: number,
@@ -176,7 +137,7 @@ class ScenarioParser implements TScenarioParserContract {
       if (!test[field]) {
         errors.push({
           type: "MISSING_FIELD",
-          message: `시나리오 ${scenarioIndex}, 테스트 ${testIndex}: ${this.getValidationMessage(
+          message: `시나리오 ${scenarioIndex}, 테스트 ${testIndex}: ${this.#getValidationMessage(
             field
           )}`,
           index: scenarioIndex,
@@ -186,31 +147,7 @@ class ScenarioParser implements TScenarioParserContract {
     });
   }
 
-  /**
-   * 시나리오들을 screenId별로 그룹화합니다.
-   * @param scenarios 시나리오 데이터 배열
-   * @returns screenId별로 그룹화된 시나리오 데이터
-   */
-  groupByScreenId(scenarios: TScenarioData[]): Map<string, TScenarioData[]> {
-    const grouped = new Map<string, TScenarioData[]>();
-
-    scenarios.forEach((scenario) => {
-      const screenId = scenario.screenId;
-      if (!grouped.has(screenId)) {
-        grouped.set(screenId, []);
-      }
-      grouped.get(screenId)!.push(scenario);
-    });
-
-    return grouped;
-  }
-
-  /**
-   * 필드명에 대응하는 유효성 검증 메시지를 반환합니다.
-   * @param field 필드명
-   * @returns 유효성 검증 메시지
-   */
-  private getValidationMessage(field: string): string {
+  #getValidationMessage(field: string): string {
     const messageMap: Record<string, string> = {
       group: VALIDATION_MESSAGES.MISSING_GROUP,
       sheetId: VALIDATION_MESSAGES.MISSING_SHEET_ID,
@@ -227,15 +164,7 @@ class ScenarioParser implements TScenarioParserContract {
     return messageMap[field] || `${field} 필드가 필요합니다`;
   }
 
-  /**
-   * TProcessingError 객체를 생성합니다.
-   * @param type 에러 타입
-   * @param message 에러 메시지
-   * @param filePath 파일 경로 (선택사항)
-   * @param originalError 원본 에러 (선택사항)
-   * @returns TProcessingError 객체
-   */
-  private createProcessingError(
+  #createProcessingError(
     type: TProcessingError["type"],
     message: string,
     filePath?: string,
@@ -249,12 +178,7 @@ class ScenarioParser implements TScenarioParserContract {
     };
   }
 
-  /**
-   * 유효성 검증 에러들을 TProcessingError로 변환합니다.
-   * @param validationErrors 유효성 검증 에러 배열
-   * @returns TProcessingError 객체
-   */
-  private createValidationProcessingError(
+  #createValidationProcessingError(
     validationErrors: TValidationError[]
   ): TProcessingError {
     const errorMessages = validationErrors
@@ -267,12 +191,7 @@ class ScenarioParser implements TScenarioParserContract {
     };
   }
 
-  /**
-   * 객체가 TProcessingError 타입인지 확인합니다.
-   * @param error 확인할 객체
-   * @returns TProcessingError 타입 여부
-   */
-  private isProcessingError(error: any): error is TProcessingError {
+  #isProcessingError(error: any): error is TProcessingError {
     return (
       error &&
       typeof error === "object" &&
@@ -283,3 +202,8 @@ class ScenarioParser implements TScenarioParserContract {
 }
 
 export { ScenarioParser };
+
+type TContract = {
+  parseScenarioFile(filePath: string): Promise<TScenarioData[]>;
+  validateScenarios(scenarios: TScenarioData[]): void;
+};

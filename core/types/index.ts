@@ -46,49 +46,6 @@ export type TTestFileInfo = {
   sheetId: string;
 };
 
-// ===== 최적화 관련 타입 =====
-export type TOptimizationResult = {
-  sheetId: string;
-  totalScreens: number;
-  totalGroups: number;
-  totalTests: number;
-  scenarios: TScenarioData[];
-};
-
-export type TOptimizationSummary = {
-  screenId: string;
-  groupCount: number;
-  testCount: number;
-  groups: Array<{
-    name: string;
-    testCount: number;
-  }>;
-};
-
-// ===== 계약 타입 (Contract Types) =====
-export type TScenarioParserContract = {
-  parseScenarioFile: (filePath: string) => Promise<TScenarioData[]>;
-  groupByScreenId: (scenarios: TScenarioData[]) => Map<string, TScenarioData[]>;
-  validateScenarios: (scenarios: TScenarioData[]) => void;
-};
-
-export type TTestCodeGeneratorContract = {
-  generateTestFiles: (
-    scenarios: TScenarioData[],
-    outputDir: string
-  ) => Promise<void>;
-  generateTestCode: (scenarios: TScenarioData[]) => string;
-};
-
-export type TJsonOptimizerContract = {
-  optimizeJsonFile: (filePath: string) => Promise<TScenarioData[]>;
-  saveOptimizedJson: (
-    scenarios: TScenarioData[],
-    outputPath: string
-  ) => Promise<void>;
-  validateRawJson: (filePath: string) => Promise<boolean>;
-};
-
 // ===== 에러 관련 타입 =====
 export type TValidationError = {
   type: "MISSING_FIELD" | "INVALID_FORMAT" | "EMPTY_ARRAY" | "INVALID_TYPE";
@@ -109,21 +66,6 @@ export type TProcessingError = {
   originalError?: Error;
 };
 
-// ===== 설정 관련 타입 =====
-export type TGenerationOptions = {
-  optimize: boolean;
-  outputDir: string;
-  createDirectories: boolean;
-  overwriteExisting: boolean;
-};
-
-export type TOptimizationOptions = {
-  fillEmptyFields: boolean;
-  formatTestIds: boolean;
-  validateOutput: boolean;
-  createBackup: boolean;
-};
-
 // ===== 유틸리티 타입 =====
 export type TFileExtension = ".json" | ".ts" | ".spec.ts";
 
@@ -131,7 +73,6 @@ export type TDirectoryStructure = {
   root: string;
   scenarios: string;
   generated: string;
-  optimizedJson: string;
   playwright: string;
 };
 
@@ -140,7 +81,6 @@ export const DEFAULT_DIRECTORIES: TDirectoryStructure = {
   root: ".",
   scenarios: "./scenarios",
   generated: "./__generated__",
-  optimizedJson: "./__generated__/optimized-json",
   playwright: "./__generated__/playwright",
 } as const;
 
@@ -156,3 +96,29 @@ export const VALIDATION_MESSAGES = {
   MISSING_WHEN: "when 필드가 필요합니다",
   MISSING_THEN: "then 필드가 필요합니다",
 } as const;
+
+// ===== 최적화 관련 타입 =====
+export type TOptimizationOptions = {
+  fillEmptyFields: boolean;
+  formatTestIds: boolean;
+  validateOutput: boolean;
+  createBackup: boolean;
+};
+
+export type TOptimizationResult = {
+  sheetId: string;
+  totalScreens: number;
+  totalGroups: number;
+  totalTests: number;
+  scenarios: TScenarioData[];
+};
+
+export type TOptimizationSummary = {
+  screenId: string;
+  groupCount: number;
+  testCount: number;
+  groups: Array<{
+    name: string;
+    testCount: number;
+  }>;
+};
