@@ -1,22 +1,23 @@
 import * as fs from "fs-extra";
 import * as path from "path";
 import {
-  TScenarioData,
-  TTestCase,
-  TRawTestData,
-  TJsonOptimizerContract,
+  TOptimizationOptions,
   TOptimizationResult,
   TOptimizationSummary,
   TProcessingError,
-  TOptimizationOptions,
+  TRawTestData,
+  TScenarioData,
+  TTestCase,
 } from "./types";
+
+export { JsonOptimizer };
 
 /**
  * JSON 최적화 클래스
  * Google Sheets에서 변환된 JSON을 프로젝트 형식에 맞게 최적화
  */
-class JsonOptimizer implements TJsonOptimizerContract {
-  private readonly defaultOptions: TOptimizationOptions = {
+class JsonOptimizer implements TContract {
+  readonly #defaultOptions: TOptimizationOptions = {
     fillEmptyFields: true,
     formatTestIds: true,
     validateOutput: true,
@@ -34,15 +35,13 @@ class JsonOptimizer implements TJsonOptimizerContract {
     filePath: string,
     options: Partial<TOptimizationOptions> = {}
   ): Promise<TScenarioData[]> {
-    const finalOptions = { ...this.defaultOptions, ...options };
+    const finalOptions = { ...this.#defaultOptions, ...options };
 
     try {
-      console.log(`📊 JSON 최적화 시작: ${filePath}`);
-
       // 파일 존재 여부 확인
       const fileExists = await fs.pathExists(filePath);
       if (!fileExists) {
-        throw this.createProcessingError(
+        throw this.#createProcessingError(
           "FILE_READ",
           `파일을 찾을 수 없습니다: ${filePath}`,
           filePath
@@ -51,17 +50,17 @@ class JsonOptimizer implements TJsonOptimizerContract {
 
       // 백업 생성 (옵션)
       if (finalOptions.createBackup) {
-        await this.createBackup(filePath);
+        await this.#createBackup(filePath);
       }
 
       // 파일 읽기 및 파싱
-      const rawData = await this.parseJsonFile(filePath);
+      const rawData = await this.#parseJsonFile(filePath);
 
       // 파일명에서 sheetId 추출
-      const sheetId = this.extractSheetId(filePath);
+      const sheetId = this.#extractSheetId(filePath);
 
       // 데이터 최적화
-      const optimizedData = this.optimizeRawData(
+      const optimizedData = this.#optimizeRawData(
         rawData,
         sheetId,
         finalOptions
@@ -69,22 +68,22 @@ class JsonOptimizer implements TJsonOptimizerContract {
 
       // 출력 유효성 검증 (옵션)
       if (finalOptions.validateOutput) {
-        this.validateOptimizedData(optimizedData);
+        this.#validateOptimizedData(optimizedData);
       }
 
       // 최적화 결과 생성
-      const result = this.createOptimizationResult(sheetId, optimizedData);
+      const result = this.#createOptimizationResult(sheetId, optimizedData);
 
       // 최적화 결과 요약 출력
-      this.printOptimizationSummary(result);
+      this.#printOptimizationSummary(result);
 
       return result.scenarios;
     } catch (error) {
-      if (this.isProcessingError(error)) {
+      if (this.#isProcessingError(error)) {
         throw error;
       }
 
-      throw this.createProcessingError(
+      throw this.#createProcessingError(
         "JSON_PARSE",
         `JSON 최적화 실패: ${
           error instanceof Error ? error.message : String(error)
@@ -117,7 +116,7 @@ class JsonOptimizer implements TJsonOptimizerContract {
       await fs.writeFile(outputPath, jsonString, "utf-8");
       console.log(`💾 최적화된 JSON 저장: ${outputPath}`);
     } catch (error) {
-      throw this.createProcessingError(
+      throw this.#createProcessingError(
         "FILE_WRITE",
         `파일 저장 실패: ${
           error instanceof Error ? error.message : String(error)
@@ -135,7 +134,7 @@ class JsonOptimizer implements TJsonOptimizerContract {
    */
   async validateRawJson(filePath: string): Promise<boolean> {
     try {
-      const rawData = await this.parseJsonFile(filePath);
+      const rawData = await this.#parseJsonFile(filePath);
 
       // 기본 구조 검증
       if (!Array.isArray(rawData)) {
@@ -150,7 +149,7 @@ class JsonOptimizer implements TJsonOptimizerContract {
 
       // 필수 필드 존재 여부 검증
       const hasRequiredFields = rawData.some((item) =>
-        this.hasAnyRequiredField(item)
+        this.#hasAnyRequiredField(item)
       );
 
       if (!hasRequiredFields) {
@@ -171,12 +170,12 @@ class JsonOptimizer implements TJsonOptimizerContract {
    * @param filePath 파일 경로
    * @returns 파싱된 원본 데이터
    */
-  private async parseJsonFile(filePath: string): Promise<TRawTestData[]> {
+  #parseJsonFile = async (filePath: string): Promise<TRawTestData[]> => {
     try {
       const jsonData = await fs.readFile(filePath, "utf-8");
       return JSON.parse(jsonData);
     } catch (error) {
-      throw this.createProcessingError(
+      throw this.#createProcessingError(
         "JSON_PARSE",
         `JSON 파싱 실패: ${
           error instanceof Error ? error.message : String(error)
@@ -185,16 +184,16 @@ class JsonOptimizer implements TJsonOptimizerContract {
         error as Error
       );
     }
-  }
+  };
 
   /**
    * 파일 경로에서 sheetId를 추출합니다.
    * @param filePath 파일 경로
    * @returns sheetId
    */
-  private extractSheetId(filePath: string): string {
+  #extractSheetId = (filePath: string): string => {
     return path.basename(filePath, ".json");
-  }
+  };
 
   /**
    * 원본 데이터를 최적화합니다.
@@ -203,11 +202,11 @@ class JsonOptimizer implements TJsonOptimizerContract {
    * @param options 최적화 옵션
    * @returns 최적화된 시나리오 데이터
    */
-  private optimizeRawData(
+  #optimizeRawData = (
     rawData: TRawTestData[],
     sheetId: string,
     options: TOptimizationOptions
-  ): TScenarioData[] {
+  ): TScenarioData[] => {
     // 빈 필드 채우기를 위한 변수들
     let currentScreenId = "";
     let currentGroup = "";
@@ -248,8 +247,8 @@ class JsonOptimizer implements TJsonOptimizerContract {
     });
 
     // 중첩 구조 생성: screenId -> group -> tests
-    return this.createNestedStructure(processedData, sheetId);
-  }
+    return this.#createNestedStructure(processedData, sheetId);
+  };
 
   /**
    * 중첩 구조를 생성합니다.
@@ -257,53 +256,48 @@ class JsonOptimizer implements TJsonOptimizerContract {
    * @param sheetId 시트 ID
    * @returns 중첩 구조의 시나리오 데이터
    */
-  private createNestedStructure(
+  #createNestedStructure = (
     processedData: TRawTestData[],
     sheetId: string
-  ): TScenarioData[] {
-    const screenGroupMap = new Map<string, Map<string, TTestCase[]>>();
+  ): TScenarioData[] => {
+    const screenGroups = new Map<string, Map<string, TTestCase[]>>();
 
+    // screenId와 group으로 이중 그룹화
     processedData.forEach((item) => {
-      // screenId별 맵이 없으면 생성
-      if (!screenGroupMap.has(item.screenId)) {
-        screenGroupMap.set(item.screenId, new Map<string, TTestCase[]>());
+      if (!screenGroups.has(item.screenId)) {
+        screenGroups.set(item.screenId, new Map());
       }
 
-      const groupMap = screenGroupMap.get(item.screenId)!;
-
-      // group별 배열이 없으면 생성
+      const groupMap = screenGroups.get(item.screenId)!;
       if (!groupMap.has(item.group)) {
         groupMap.set(item.group, []);
       }
 
-      const testCase: TTestCase = {
+      groupMap.get(item.group)!.push({
         testId: item.testId,
         path: item.path,
         description: item.description,
         given: item.given,
         when: item.when,
         then: item.then,
-      };
-
-      groupMap.get(item.group)!.push(testCase);
+      });
     });
 
-    // Map을 TScenarioData 배열로 변환
+    // TScenarioData 형태로 변환
     const scenarios: TScenarioData[] = [];
-
-    screenGroupMap.forEach((groupMap, screenId) => {
-      groupMap.forEach((tests, groupName) => {
+    screenGroups.forEach((groupMap, screenId) => {
+      groupMap.forEach((tests, group) => {
         scenarios.push({
+          group,
           sheetId,
           screenId,
-          group: groupName,
           tests,
         });
       });
     });
 
     return scenarios;
-  }
+  };
 
   /**
    * 최적화 결과 객체를 생성합니다.
@@ -311,145 +305,148 @@ class JsonOptimizer implements TJsonOptimizerContract {
    * @param scenarios 최적화된 시나리오 데이터
    * @returns 최적화 결과 객체
    */
-  private createOptimizationResult(
+  #createOptimizationResult = (
     sheetId: string,
     scenarios: TScenarioData[]
-  ): TOptimizationResult {
-    const screenMap = new Map<string, TScenarioData[]>();
-    let totalTests = 0;
-
-    scenarios.forEach((scenario) => {
-      if (!screenMap.has(scenario.screenId)) {
-        screenMap.set(scenario.screenId, []);
-      }
-      screenMap.get(scenario.screenId)!.push(scenario);
-      totalTests += scenario.tests.length;
-    });
+  ): TOptimizationResult => {
+    const uniqueScreens = new Set(scenarios.map((s) => s.screenId));
+    const uniqueGroups = new Set(scenarios.map((s) => s.group));
+    const totalTests = scenarios.reduce(
+      (sum, scenario) => sum + scenario.tests.length,
+      0
+    );
 
     return {
       sheetId,
-      totalScreens: screenMap.size,
-      totalGroups: scenarios.length,
+      totalScreens: uniqueScreens.size,
+      totalGroups: uniqueGroups.size,
       totalTests,
       scenarios,
     };
-  }
+  };
 
   /**
-   * 최적화 결과 요약을 콘솔에 출력합니다.
+   * 결과 요약을 콘솔에 출력합니다.
    * @param result 최적화 결과
    */
-  private printOptimizationSummary(result: TOptimizationResult): void {
-    console.log("\n📊 === JSON 최적화 결과 ===");
-    console.log(`📋 Sheet ID: ${result.sheetId}`);
-    console.log(`📱 총 Screen 수: ${result.totalScreens}`);
-    console.log(`📁 총 그룹 수: ${result.totalGroups}`);
-    console.log(`🧪 총 테스트 수: ${result.totalTests}`);
-
-    // screenId별 상세 정보
-    const screenSummaries = this.createScreenSummaries(result.scenarios);
-
-    screenSummaries.forEach((summary, index) => {
-      console.log(`\n🖥️  Screen ${index + 1}: ${summary.screenId}`);
-      console.log(`   📁 그룹 수: ${summary.groupCount}`);
-      console.log(`   🧪 테스트 수: ${summary.testCount}`);
-
-      summary.groups.forEach((group, groupIndex) => {
+  #printOptimizationSummary = (result: TOptimizationResult): void => {
+    // 화면별 상세 정보
+    const screenSummaries = this.#createScreenSummaries(result.scenarios);
+    if (screenSummaries.length > 0) {
+      console.log("\n📱 화면별 상세:");
+      screenSummaries.forEach((summary) => {
+        console.log(`   ${summary.screenId}:`);
         console.log(
-          `   ${groupIndex + 1}) ${group.name}: ${group.testCount}개 테스트`
+          `      그룹 ${summary.groupCount}개, 테스트 ${summary.testCount}개`
         );
+        summary.groups.forEach((group) => {
+          console.log(`      └─ ${group.name}: ${group.testCount}개`);
+        });
       });
-    });
-
-    console.log(
-      `\n📈 최적화 완료! 총 ${result.totalTests}개의 테스트가 준비되었습니다.`
-    );
-  }
+    }
+  };
 
   /**
    * 화면별 요약 정보를 생성합니다.
    * @param scenarios 시나리오 데이터
    * @returns 화면별 요약 배열
    */
-  private createScreenSummaries(
+  #createScreenSummaries = (
     scenarios: TScenarioData[]
-  ): TOptimizationSummary[] {
-    const screenMap = new Map<string, TScenarioData[]>();
+  ): TOptimizationSummary[] => {
+    const screenMap = new Map<string, TOptimizationSummary>();
 
     scenarios.forEach((scenario) => {
       if (!screenMap.has(scenario.screenId)) {
-        screenMap.set(scenario.screenId, []);
+        screenMap.set(scenario.screenId, {
+          screenId: scenario.screenId,
+          groupCount: 0,
+          testCount: 0,
+          groups: [],
+        });
       }
-      screenMap.get(scenario.screenId)!.push(scenario);
+
+      const summary = screenMap.get(scenario.screenId)!;
+      summary.groupCount++;
+      summary.testCount += scenario.tests.length;
+      summary.groups.push({
+        name: scenario.group,
+        testCount: scenario.tests.length,
+      });
     });
 
-    return Array.from(screenMap.entries()).map(
-      ([screenId, screenScenarios]) => ({
-        screenId,
-        groupCount: screenScenarios.length,
-        testCount: screenScenarios.reduce(
-          (sum, scenario) => sum + scenario.tests.length,
-          0
-        ),
-        groups: screenScenarios.map((scenario) => ({
-          name: scenario.group,
-          testCount: scenario.tests.length,
-        })),
-      })
+    return Array.from(screenMap.values()).sort((a, b) =>
+      a.screenId.localeCompare(b.screenId)
     );
-  }
+  };
 
   /**
    * 백업 파일을 생성합니다.
    * @param filePath 원본 파일 경로
    */
-  private async createBackup(filePath: string): Promise<void> {
+  #createBackup = async (filePath: string): Promise<void> => {
     try {
-      const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-      const backupPath = `${filePath}.backup.${timestamp}`;
+      const backupPath = `${filePath}.backup.${Date.now()}`;
       await fs.copy(filePath, backupPath);
       console.log(`💾 백업 생성: ${backupPath}`);
     } catch (error) {
       console.warn(`⚠️  백업 생성 실패: ${error}`);
     }
-  }
+  };
 
   /**
    * 최적화된 데이터의 유효성을 검증합니다.
    * @param scenarios 최적화된 시나리오 데이터
    */
-  private validateOptimizedData(scenarios: TScenarioData[]): void {
+  #validateOptimizedData = (scenarios: TScenarioData[]): void => {
     if (!Array.isArray(scenarios) || scenarios.length === 0) {
-      throw this.createProcessingError(
+      throw this.#createProcessingError(
         "VALIDATION",
-        "최적화된 데이터가 유효하지 않습니다"
+        "최적화된 데이터가 유효하지 않습니다: 빈 배열"
       );
     }
 
-    scenarios.forEach((scenario, index) => {
-      if (
+    const invalidScenarios = scenarios.filter(
+      (scenario) =>
+        !scenario.group ||
         !scenario.sheetId ||
         !scenario.screenId ||
-        !scenario.group ||
-        !Array.isArray(scenario.tests)
-      ) {
-        throw this.createProcessingError(
-          "VALIDATION",
-          `최적화된 시나리오 ${index}가 유효하지 않습니다`
-        );
-      }
-    });
-  }
+        !Array.isArray(scenario.tests) ||
+        scenario.tests.length === 0
+    );
+
+    if (invalidScenarios.length > 0) {
+      throw this.#createProcessingError(
+        "VALIDATION",
+        `최적화된 데이터에 유효하지 않은 시나리오가 ${invalidScenarios.length}개 있습니다`
+      );
+    }
+
+    console.log("✅ 최적화된 데이터 유효성 검증 통과");
+  };
 
   /**
    * 원본 데이터에 필수 필드가 있는지 확인합니다.
    * @param item 원본 데이터 항목
    * @returns 필수 필드 존재 여부
    */
-  private hasAnyRequiredField(item: any): boolean {
-    const requiredFields = ["screenId", "group", "testId", "description"];
-    return requiredFields.some((field) => item[field]);
-  }
+  #hasAnyRequiredField = (item: any): boolean => {
+    const requiredFields = [
+      "testId",
+      "description",
+      "given",
+      "when",
+      "then",
+      "path",
+      "screenId",
+      "group",
+    ];
+
+    return requiredFields.some(
+      (field) =>
+        item[field] && typeof item[field] === "string" && item[field].trim()
+    );
+  };
 
   /**
    * TProcessingError 객체를 생성합니다.
@@ -459,33 +456,43 @@ class JsonOptimizer implements TJsonOptimizerContract {
    * @param originalError 원본 에러 (선택사항)
    * @returns TProcessingError 객체
    */
-  private createProcessingError(
+  #createProcessingError = (
     type: TProcessingError["type"],
     message: string,
     filePath?: string,
     originalError?: Error
-  ): TProcessingError {
+  ): TProcessingError => {
     return {
       type,
       message,
       filePath,
       originalError,
     };
-  }
+  };
 
   /**
    * 객체가 TProcessingError 타입인지 확인합니다.
    * @param error 확인할 객체
    * @returns TProcessingError 타입 여부
    */
-  private isProcessingError(error: any): error is TProcessingError {
+  #isProcessingError = (error: any): error is TProcessingError => {
     return (
       error &&
       typeof error === "object" &&
       "type" in error &&
       "message" in error
     );
-  }
+  };
 }
 
-export { JsonOptimizer };
+type TContract = {
+  optimizeJsonFile(
+    filePath: string,
+    options?: Partial<TOptimizationOptions>
+  ): Promise<TScenarioData[]>;
+  saveOptimizedJson(
+    scenarios: TScenarioData[],
+    outputPath: string
+  ): Promise<void>;
+  validateRawJson(filePath: string): Promise<boolean>;
+};
