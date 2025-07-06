@@ -1,30 +1,24 @@
-import fs from "fs/promises";
 import { google } from "googleapis";
-import path from "path";
+import { TScenarioData } from "../types";
 import { COLUMN_CONFIG, COLUMN_MAPPING, GOOGLE_SHEETS_CONFIG } from "./config";
-import { TScenarioData } from "./types";
 
 type TContract = {
-  convert: (url: string) => Promise<void>;
+  convert: () => Promise<TScenarioData[]>;
 };
 
 class SheetsToJsonConverter implements TContract {
   #url: string;
-  #outputPath: string;
   #spreadsheetId: string | null = null;
   #lastColumn: string | null = null;
   #actualRange: string | null = null;
   #detectedRange: string | null = null;
 
-  constructor(url: string, outputPath: string) {
+  constructor(url: string) {
     this.#url = url;
-    this.#outputPath = outputPath;
   }
 
-  async convert(): Promise<void> {
+  async convert(): Promise<TScenarioData[]> {
     try {
-      console.log("🔄 구글 시트에서 데이터를 가져오는 중...");
-
       this.#spreadsheetId = this.#extractSpreadsheetId(this.#url);
       console.log("📋 스프레드시트 ID:", this.#spreadsheetId);
 
@@ -39,25 +33,16 @@ class SheetsToJsonConverter implements TContract {
 
       if (scenarios.length === 0) {
         console.log("⚠️  변환할 데이터가 없습니다.");
-        return;
+        return [];
       }
 
-      // 출력 디렉토리 생성
-      const outputDir = path.dirname(this.#outputPath);
-      await fs.mkdir(outputDir, { recursive: true });
-
-      // JSON 파일 생성
-      await fs.writeFile(
-        this.#outputPath,
-        JSON.stringify(scenarios, null, 2),
-        "utf8"
-      );
-
-      console.log(`\n✅ 성공적으로 변환완료: ${this.#outputPath}`);
+      console.log(`\n✅ 성공적으로 변환완료`);
       console.log(`📊 총 ${scenarios.length}개의 시나리오가 변환되었습니다.`);
       console.log(`📍 감지된 데이터 범위: ${this.#actualRange}`);
       console.log(`📍 마지막 컬럼: ${this.#lastColumn}`);
       console.log(`📍 결과 주입 예정 컬럼: ${this.getResultColumn()}`);
+
+      return scenarios;
     } catch (error) {
       console.error("❌ 변환 실패:", error);
       throw error;
@@ -120,8 +105,6 @@ class SheetsToJsonConverter implements TContract {
     const sheets = google.sheets({ version: "v4", auth: auth as any });
 
     try {
-      console.log("🔍 헤더 행을 읽어서 데이터 범위 감지 중...");
-
       // URL에서 gid 추출하여 시트 이름 확인
       let targetRange = GOOGLE_SHEETS_CONFIG.HEADER_DETECTION_RANGE;
       const gid = this.#extractGidFromUrl();
@@ -139,8 +122,8 @@ class SheetsToJsonConverter implements TContract {
         range: targetRange,
       });
 
-      const headerRow = response.data.values?.[0];
-      if (!headerRow || headerRow.length === 0) {
+      const headerRows = response.data.values;
+      if (!headerRows || headerRows.length === 0) {
         console.log("⚠️  헤더 행에 데이터가 없습니다. 기본 범위를 사용합니다.");
         this.#detectedRange = targetRange.includes("!")
           ? targetRange.replace(
@@ -153,8 +136,9 @@ class SheetsToJsonConverter implements TContract {
         return;
       }
 
-      // 실제 데이터가 있는 마지막 컬럼 감지
-      this.#lastColumn = this.#detectLastColumn(headerRow);
+      const secondRow = headerRows[1] || [];
+
+      this.#lastColumn = this.#detectLastColumn(secondRow);
       this.#actualRange = `A:${this.#lastColumn}`;
 
       // 시트 정보를 포함한 감지된 범위 설정
@@ -167,10 +151,6 @@ class SheetsToJsonConverter implements TContract {
             rangeWithoutSheet
           )
         : rangeWithoutSheet;
-
-      console.log(`🔍 감지된 마지막 컬럼: ${this.#lastColumn}`);
-      console.log(`📍 실제 데이터 범위: ${this.#actualRange}`);
-      console.log(`🎯 최종 감지 범위: ${this.#detectedRange}`);
     } catch (error) {
       console.error("❌ 데이터 범위 감지 실패:", error);
       console.log("⚠️  기본 범위를 사용합니다.");
@@ -348,8 +328,6 @@ class SheetsToJsonConverter implements TContract {
       });
     }
 
-    console.log(`🔄 ${scenarioMap.size}개의 시나리오로 그룹화됨`);
-
     // Map의 values를 배열로 변환하여 반환
     return Array.from(scenarioMap.values());
   }
@@ -365,8 +343,6 @@ class SheetsToJsonConverter implements TContract {
     const sheets = google.sheets({ version: "v4", auth: auth as any });
 
     try {
-      console.log(`📍 사용할 범위: ${range}`);
-
       const response = await sheets.spreadsheets.values.get({
         spreadsheetId,
         range,
@@ -376,13 +352,6 @@ class SheetsToJsonConverter implements TContract {
       if (!rows || rows.length === 0) {
         console.log("⚠️  시트에 데이터가 없습니다.");
         return [];
-      }
-
-      console.log("🔍 읽어온 데이터:");
-      console.log(`📊 총 ${rows.length}개 행 (헤더 포함)`);
-      console.log("첫 번째 행 (헤더):", rows[0]);
-      if (rows.length > 1) {
-        console.log("두 번째 행 (첫 번째 데이터):", rows[1]);
       }
 
       return this.#convertToScenarioData(rows);

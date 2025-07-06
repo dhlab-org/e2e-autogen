@@ -23,10 +23,10 @@ export const GOOGLE_SHEETS_CONFIG = {
   // Service Account 키 파일 경로
   CREDENTIALS_PATH: path.join(
     process.cwd(),
-    "core/sheets-to-json/credentials.json"
+    "playwright/.auth/credentials.json"
   ),
 
-  // 헤더 행 감지를 위한 초기 범위 (첫 번째 행만)
+  // 헤더 행 감지를 위한 초기 범위 (두 번째 행까지 헤더 행으로 감지)
   HEADER_DETECTION_RANGE: "1:2",
 
   // 최대 감지 범위 (fallback)

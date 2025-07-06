@@ -1,11 +1,12 @@
 #!/usr/bin/env node
 
+import * as fs from "fs-extra";
 import { E2EAutogen } from "./autogen";
+import { SheetsToJsonConverter } from "./sheets-to-json/converter";
 import { DEFAULT_DIRECTORIES } from "./types";
 
 const main = async (): Promise<void> => {
   const args = process.argv.slice(2);
-  const autogen = new E2EAutogen();
 
   try {
     const options = parseArgs(args);
@@ -21,8 +22,15 @@ const main = async (): Promise<void> => {
       process.exit(0);
     }
 
+    // sheetsUrl이 없으면 에러
+    if (!options.sheetsUrl) {
+      console.error("❌ Google Sheets URL이 필요합니다.");
+      showUsage();
+      process.exit(1);
+    }
+
     // 테스트 코드 생성
-    await handleGenerateCommand(autogen, options);
+    await handleGenerateCommand(options);
   } catch (error) {
     console.error("❌ 예상치 못한 오류:", error);
     process.exit(1);
@@ -39,7 +47,7 @@ if (require.main === module) {
 
 function parseArgs(args: string[]): TCliOptions {
   const options: TCliOptions = {
-    scenariosDir: DEFAULT_DIRECTORIES.scenarios,
+    sheetsUrl: "",
     outputDir: DEFAULT_DIRECTORIES.playwright,
     help: false,
     version: false,
@@ -49,15 +57,17 @@ function parseArgs(args: string[]): TCliOptions {
     const arg = args[i];
 
     switch (arg) {
-      case "--scenarios":
+      case "--sheets":
+      case "--url":
         if (i + 1 < args.length) {
-          options.scenariosDir = args[++i];
+          options.sheetsUrl = args[++i];
         } else {
-          throw new Error("--scenarios 옵션에는 디렉토리 경로가 필요합니다");
+          throw new Error("--sheets 옵션에는 Google Sheets URL이 필요합니다");
         }
         break;
 
       case "--output":
+      case "-o":
         if (i + 1 < args.length) {
           options.outputDir = args[++i];
         } else {
@@ -76,7 +86,10 @@ function parseArgs(args: string[]): TCliOptions {
         break;
 
       default:
-        if (arg.startsWith("-")) {
+        // 첫 번째 인자가 URL이면 sheetsUrl로 사용
+        if (!arg.startsWith("-") && !options.sheetsUrl) {
+          options.sheetsUrl = arg;
+        } else if (arg.startsWith("-")) {
           console.warn(`⚠️  알 수 없는 옵션: ${arg}`);
         }
         break;
@@ -86,14 +99,31 @@ function parseArgs(args: string[]): TCliOptions {
   return options;
 }
 
-async function handleGenerateCommand(
-  autogen: E2EAutogen,
-  options: TCliOptions
-): Promise<void> {
-  console.log(`📁 시나리오 디렉토리: ${options.scenariosDir}`);
+async function handleGenerateCommand(options: TCliOptions): Promise<void> {
+  console.log(`🔗 Google Sheets URL: ${options.sheetsUrl}`);
   console.log(`📁 출력 디렉토리: ${options.outputDir}`);
 
-  await autogen.generateAll(options.scenariosDir, options.outputDir);
+  try {
+    // 1단계: Google Sheets를 JSON으로 변환
+    console.log("\n📊 1단계: Google Sheets → JSON 변환");
+
+    // 출력 디렉토리 생성
+    await fs.ensureDir(options.outputDir);
+
+    const converter = new SheetsToJsonConverter(options.sheetsUrl);
+    const scenarios = await converter.convert();
+
+    // 2단계: JSON 데이터를 스텁 코드로 변환
+    console.log("\n🛠️  2단계: JSON → 스텁 코드 생성");
+
+    const autogen = new E2EAutogen();
+    await autogen.generateFromData(scenarios, options.outputDir);
+
+    console.log(`\n🎉 모든 작업 완료! 결과 확인: ${options.outputDir}`);
+  } catch (error) {
+    console.error("\n❌ 작업 실패:", error);
+    throw error;
+  }
 }
 
 function showVersion(): void {
@@ -103,22 +133,25 @@ function showVersion(): void {
 
 function showUsage(): void {
   console.log(`
-사용법: e2e-autogen [옵션]
+사용법: e2e-autogen <Google Sheets URL> [옵션]
+
+필수:
+  <URL>                Google Sheets URL
 
 옵션:
-  --scenarios <dir>    시나리오 디렉토리 (기본값: ./scenarios)
-  --output <dir>       출력 디렉토리 (기본값: ./__generated__/playwright)
+  --output, -o <dir>   출력 디렉토리 (기본값: ./__generated__/playwright)
   --help, -h           도움말 표시
   --version, -v        버전 정보 표시
 
 예시:
-  e2e-autogen
-  e2e-autogen --scenarios ./playwright/scenarios --output ./playwright/__generated__
+  e2e-autogen "https://docs.google.com/spreadsheets/d/abc123/edit#gid=0"
+  e2e-autogen --sheets "https://docs.google.com/..." --output ./tests
+  e2e-autogen "https://docs.google.com/..." -o ./playwright/__generated__
 `);
 }
 
 type TCliOptions = {
-  scenariosDir: string;
+  sheetsUrl: string;
   outputDir: string;
   help: boolean;
   version: boolean;

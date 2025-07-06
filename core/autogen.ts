@@ -1,8 +1,7 @@
-import * as path from "path";
 import * as fs from "fs-extra";
 import { TestCodeGenerator } from "./generator";
 import { ScenarioParser } from "./parser";
-import { TProcessingError, DEFAULT_DIRECTORIES } from "./types";
+import { DEFAULT_DIRECTORIES, TProcessingError, TScenarioData } from "./types";
 
 /**
  * E2E 테스트 자동 생성 메인 클래스
@@ -39,70 +38,34 @@ class E2EAutogen implements TContract {
   }
 
   /**
-   * scenarios 디렉토리의 모든 JSON 파일을 처리합니다.
-   * @param scenariosDir 시나리오 디렉토리 (기본값: ./scenarios)
+   * 시나리오 데이터로부터 테스트 코드를 생성합니다.
+   * @param scenarios 시나리오 데이터 배열
    * @param outputDir 출력 디렉토리 (기본값: ./__generated__/playwright)
    * @throws {TProcessingError} 처리 실패 시
    */
-  async generateAll(
-    scenariosDir: string = DEFAULT_DIRECTORIES.scenarios,
+  async generateFromData(
+    scenarios: TScenarioData[],
     outputDir: string = DEFAULT_DIRECTORIES.playwright
   ): Promise<void> {
     try {
-      console.log(`🚀 ${scenariosDir} → ${outputDir}`);
+      console.log(`🚀 시나리오 데이터 → ${outputDir}`);
 
-      const jsonFiles = await this.#findJsonFiles(scenariosDir);
-
-      if (jsonFiles.length === 0) {
-        console.log("⚠️  처리할 JSON 파일이 없습니다.");
+      if (scenarios.length === 0) {
+        console.log("⚠️  처리할 시나리오 데이터가 없습니다.");
         return;
       }
 
       // 필요한 디렉토리 구조 생성
       await fs.ensureDir(outputDir);
 
-      // 병렬로 파일 처리
-      const processingPromises = jsonFiles.map((file) => {
-        const filePath = path.join(scenariosDir, file);
-        return this.generate(filePath, outputDir);
-      });
+      // 테스트 코드 생성
+      await this.#generator.generateTestFiles(scenarios, outputDir);
 
-      await Promise.all(processingPromises);
-
-      console.log(`✅ ${jsonFiles.length}개 파일 처리 완료`);
+      console.log(`✅ ${scenarios.length}개 시나리오 처리 완료`);
     } catch (error) {
-      this.#handleError("일괄 처리", error);
+      this.#handleError("테스트 코드 생성", error);
     }
   }
-
-  /**
-   * 지정된 디렉토리에서 JSON 파일들을 찾습니다.
-   * @param directory 검색할 디렉토리
-   * @returns JSON 파일 이름 배열
-   */
-  #findJsonFiles = async (directory: string): Promise<string[]> => {
-    try {
-      const files = await fs.readdir(directory);
-      return files.filter(
-        (file) => path.extname(file).toLowerCase() === ".json"
-      );
-    } catch (error) {
-      if ((error as any).code === "ENOENT") {
-        throw this.#createProcessingError(
-          "FILE_READ",
-          `시나리오 디렉토리를 찾을 수 없습니다: ${directory}`,
-          directory,
-          error as Error
-        );
-      }
-      throw this.#createProcessingError(
-        "FILE_READ",
-        `디렉토리 읽기 실패: ${directory}`,
-        directory,
-        error as Error
-      );
-    }
-  };
 
   /**
    * 에러를 처리하고 적절한 메시지를 출력합니다.
@@ -129,23 +92,6 @@ class E2EAutogen implements TContract {
   };
 
   /**
-   * TProcessingError 객체를 생성합니다.
-   */
-  #createProcessingError = (
-    type: TProcessingError["type"],
-    message: string,
-    filePath?: string,
-    originalError?: Error
-  ): TProcessingError => {
-    return {
-      type,
-      message,
-      filePath,
-      originalError,
-    };
-  };
-
-  /**
    * 객체가 TProcessingError 타입인지 확인합니다.
    */
   #isProcessingError = (error: any): error is TProcessingError => {
@@ -162,5 +108,8 @@ export { E2EAutogen };
 
 type TContract = {
   generate(scenarioPath: string, outputDir?: string): Promise<void>;
-  generateAll(scenariosDir?: string, outputDir?: string): Promise<void>;
+  generateFromData(
+    scenarios: TScenarioData[],
+    outputDir?: string
+  ): Promise<void>;
 };

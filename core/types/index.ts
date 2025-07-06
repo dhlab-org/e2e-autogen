@@ -1,30 +1,14 @@
-export type TTestCase = {
+export type TScenarioData = {
+  scenarioId: string;
+  scenario: string;
+  steps: TStepData[];
+};
+
+export type TStepData = {
   testId: string;
-  path: string;
-  description: string;
-  given: string;
+  uiPath: string;
   when: string;
   then: string;
-};
-
-export type TTestGroup = {
-  group: string;
-  sheetId: string;
-  screenId: string;
-  tests: TTestCase[];
-};
-
-export type TScenarioData = {
-  group: string;
-  sheetId: string;
-  screenId: string;
-  tests: TTestCase[];
-};
-
-export type TGeneratedTest = {
-  group: string;
-  screenId: string;
-  testCases: TTestCase[];
 };
 
 // ===== 원본 JSON 데이터 타입 (Google Sheets 변환 결과) =====

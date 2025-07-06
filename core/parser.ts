@@ -1,18 +1,13 @@
 import * as fs from "fs-extra";
 import {
-  TScenarioData,
-  TValidationError,
   TProcessingError,
-  VALIDATION_MESSAGES,
+  TScenarioData,
+  TStepData,
+  TValidationError,
 } from "./types";
-import { JsonOptimizer } from "./optimizer";
 
 class ScenarioParser implements TContract {
-  readonly #optimizer: JsonOptimizer;
-
-  constructor() {
-    this.#optimizer = new JsonOptimizer();
-  }
+  constructor() {}
 
   async parseScenarioFile(filePath: string): Promise<TScenarioData[]> {
     try {
@@ -26,15 +21,21 @@ class ScenarioParser implements TContract {
         );
       }
 
-      // 모든 JSON은 flat 구조이므로 optimizer를 사용하여 처리
-      return await this.#optimizer.optimizeJsonFile(filePath);
+      // JSON 파일 읽기
+      const jsonData = await fs.readFile(filePath, "utf-8");
+      const scenarios: TScenarioData[] = JSON.parse(jsonData);
+
+      // 유효성 검증
+      this.validateScenarios(scenarios);
+
+      return scenarios;
     } catch (error) {
       if (this.#isProcessingError(error)) {
         throw error;
       }
 
       throw this.#createProcessingError(
-        "FILE_READ",
+        "JSON_PARSE",
         `시나리오 파일 파싱 실패: ${
           error instanceof Error ? error.message : String(error)
         }`,
@@ -81,10 +82,9 @@ class ScenarioParser implements TContract {
     errors: TValidationError[]
   ): void {
     const requiredFields: Array<keyof TScenarioData> = [
-      "group",
-      "sheetId",
-      "screenId",
-      "tests",
+      "scenarioId",
+      "scenario",
+      "steps",
     ];
 
     // 필수 필드 검증
@@ -92,76 +92,55 @@ class ScenarioParser implements TContract {
       if (!scenario[field]) {
         errors.push({
           type: "MISSING_FIELD",
-          message: `시나리오 ${index}: ${this.#getValidationMessage(field)}`,
+          message: `시나리오 ${index}: ${field} 필드가 필요합니다`,
           index,
           field,
         });
       }
     });
 
-    // tests 배열 검증
-    if (scenario.tests && !Array.isArray(scenario.tests)) {
+    // steps 배열 검증
+    if (scenario.steps && !Array.isArray(scenario.steps)) {
       errors.push({
         type: "INVALID_TYPE",
-        message: `시나리오 ${index}: ${VALIDATION_MESSAGES.INVALID_TESTS_ARRAY}`,
+        message: `시나리오 ${index}: steps 필드는 배열이어야 합니다`,
         index,
-        field: "tests",
+        field: "steps",
       });
       return;
     }
 
-    // 각 테스트 케이스 검증
-    if (Array.isArray(scenario.tests)) {
-      scenario.tests.forEach((test, testIndex) => {
-        this.#validateTestCase(test, index, testIndex, errors);
+    // 각 스텝 검증
+    if (Array.isArray(scenario.steps)) {
+      scenario.steps.forEach((step, stepIndex) => {
+        this.#validateStep(step, index, stepIndex, errors);
       });
     }
   }
 
-  #validateTestCase(
-    test: any,
+  #validateStep(
+    step: TStepData,
     scenarioIndex: number,
-    testIndex: number,
+    stepIndex: number,
     errors: TValidationError[]
   ): void {
-    const requiredTestFields = [
+    const requiredStepFields: Array<keyof TStepData> = [
       "testId",
-      "path",
-      "description",
-      "given",
+      "uiPath",
       "when",
       "then",
     ];
 
-    requiredTestFields.forEach((field) => {
-      if (!test[field]) {
+    requiredStepFields.forEach((field) => {
+      if (!step[field]) {
         errors.push({
           type: "MISSING_FIELD",
-          message: `시나리오 ${scenarioIndex}, 테스트 ${testIndex}: ${this.#getValidationMessage(
-            field
-          )}`,
+          message: `시나리오 ${scenarioIndex}, 스텝 ${stepIndex}: ${field} 필드가 필요합니다`,
           index: scenarioIndex,
           field,
         });
       }
     });
-  }
-
-  #getValidationMessage(field: string): string {
-    const messageMap: Record<string, string> = {
-      group: VALIDATION_MESSAGES.MISSING_GROUP,
-      sheetId: VALIDATION_MESSAGES.MISSING_SHEET_ID,
-      screenId: VALIDATION_MESSAGES.MISSING_SCREEN_ID,
-      tests: VALIDATION_MESSAGES.INVALID_TESTS_ARRAY,
-      testId: VALIDATION_MESSAGES.MISSING_TEST_ID,
-      path: VALIDATION_MESSAGES.MISSING_PATH,
-      description: VALIDATION_MESSAGES.MISSING_DESCRIPTION,
-      given: VALIDATION_MESSAGES.MISSING_GIVEN,
-      when: VALIDATION_MESSAGES.MISSING_WHEN,
-      then: VALIDATION_MESSAGES.MISSING_THEN,
-    };
-
-    return messageMap[field] || `${field} 필드가 필요합니다`;
   }
 
   #createProcessingError(
