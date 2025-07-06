@@ -2,7 +2,7 @@
 
 import * as fs from "fs-extra";
 import { E2EAutogen } from "./autogen";
-import { SheetsToJsonConverter } from "./sheets-to-json/converter";
+import { createScenarioSheet } from "./sheets-to-json";
 import { DEFAULT_DIRECTORIES } from "./types";
 
 const main = async (): Promise<void> => {
@@ -104,22 +104,15 @@ async function handleGenerateCommand(options: TCliOptions): Promise<void> {
   console.log(`📁 출력 디렉토리: ${options.outputDir}`);
 
   try {
-    // 1단계: Google Sheets를 JSON으로 변환
-    console.log("\n📊 1단계: Google Sheets → JSON 변환");
-
-    // 출력 디렉토리 생성
+    // 📊 1단계: Google Sheets → JSON 변환
     await fs.ensureDir(options.outputDir);
 
-    const converter = new SheetsToJsonConverter(options.sheetsUrl);
-    const scenarios = await converter.convert();
+    const scenarioSheet = createScenarioSheet(options.sheetsUrl);
+    const scenarios = await scenarioSheet.scenarios();
 
-    // 2단계: JSON 데이터를 스텁 코드로 변환
-    console.log("\n🛠️  2단계: JSON → 스텁 코드 생성");
-
+    // 📊 2단계: JSON → 스텁 코드 생성
     const autogen = new E2EAutogen();
     await autogen.generateFromData(scenarios, options.outputDir);
-
-    console.log(`\n🎉 모든 작업 완료! 결과 확인: ${options.outputDir}`);
   } catch (error) {
     console.error("\n❌ 작업 실패:", error);
     throw error;
