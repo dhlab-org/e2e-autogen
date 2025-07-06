@@ -2,7 +2,7 @@
   "name": "@dhlab/e2e-autogen",
   "version": "1.0.0",
   "description": "Google 스프레드시트 기반 시나리오를 Playwright 테스트 스텁 코드로 자동 생성하는 도구",
-  "bin": "dist/cli.js",
+  "bin": "dist/index.js",
   "files": [
     "dist/**/*",
     "README.md",
@@ -13,11 +13,14 @@
     "dev": "tsx core/index.ts"
   },
   "dependencies": {
-    "fs-extra": "^11.1.1"
+    "@google-cloud/local-auth": "2.1.0",
+    "fs-extra": "^11.1.1",
+    "googleapis": "105"
   },
   "devDependencies": {
     "@playwright/test": "^1.53.1",
     "@rollup/plugin-commonjs": "^28.0.6",
+    "@rollup/plugin-json": "^6.1.0",
     "@rollup/plugin-node-resolve": "^16.0.1",
     "@rollup/plugin-typescript": "^12.1.3",
     "@types/fs-extra": "^11.0.1",

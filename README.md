@@ -4,9 +4,11 @@ Google 스프레드시트 기반 시나리오를 Playwright 테스트 **스텁 �
 
 ## ✨ 주요 기능
 
-- 📊 **JSON 시나리오 파싱**: 구조화된 JSON 시나리오 파일을 읽어들입니다
+- 🌐 **Google Sheets 직접 연동**: Google Sheets API를 통해 스프레드시트 데이터를 바로 읽어들입니다
+- 📊 **자동 데이터 변환**: 스프레드시트 데이터를 시나리오 JSON으로 자동 변환합니다
 - 🧪 **Playwright 테스트 스텁 생성**: 시나리오를 기반으로 실행 가능한 테스트 코드 틀(스텁)을 생성합니다
-- 📁 **일괄 처리**: 여러 시나리오 파일을 한 번에 처리할 수 있습니다
+- 🔒 **서비스 어카운트 인증**: 안전한 서비스 어카운트 방식으로 Google Sheets 접근
+- 📝 **결과 자동 업데이트**: 테스트 실행 결과를 Google Sheets에 자동으로 업데이트 (TBD)
 - 🚀 **CLI 도구**: 명령줄에서 간편하게 사용 가능합니다
 
 > 💡 **스텁 코드(Stub Code)란?**  
@@ -20,7 +22,7 @@ Google 스프레드시트 기반 시나리오를 Playwright 테스트 **스텁 �
 
 ```bash
 # 1. 저장소 클론
-git clone https://github.com/dhlab/e2e-autogen.git
+git clone https://github.com/dhlab-org/e2e-autogen.git
 cd e2e-autogen
 
 # 2. 의존성 설치
@@ -47,53 +49,57 @@ e2e-autogen --version
 e2e-autogen --help
 ```
 
-## 📊 Google Spreadsheet에서 JSON 변환하기
+## 📊 Google Sheets 연동 설정
 
-### 1️⃣ Google Sheets 확장 프로그램 설치
+### 1️⃣ 서비스 어카운트 설정
 
-[Sheets to JSON](https://workspace.google.com/marketplace/app/sheets_to_json/984948857234) 확장 프로그램을 설치합니다.
+Google Sheets API를 사용하기 위해 서비스 어카운트 인증이 필요합니다:
+
+```bash
+# 인증 파일 디렉토리 생성
+mkdir -p playwright/.auth
+
+# 노션에 있는 credentials.json 내용을 복사하여 다음 위치에 저장
+# playwright/.auth/credentials.json
+```
+
+> **💡 인증 파일 준비 방법**
+>
+> - 팀 계정으로 생성된 서비스 어카운트를 사용합니다
+> - 노션에서 `credentials.json` 파일 내용을 복사하여 저장하세요
 
 ### 2️⃣ 스프레드시트 데이터 구조
 
-스프레드시트는 다음과 같은 컬럼 구조로 작성해야 합니다:
+팀 공통 QA 시트를 이용해주세요.  
+스프레드시트는 다음과 같은 컬럼 구조로 이루어져 있습니다.
 
-| A (screenId) | B (group)   | C (testId) | D (path)             | E (description)   | F (when)       | G (then)              |
-| ------------ | ----------- | ---------- | -------------------- | ----------------- | -------------- | --------------------- |
-| login-001    | 로그인 실패 | 1          | 로그인 > 로그인 버튼 | Modal 출력 테스트 | 모달 내용 확인 | 로그인 실패 문구 표시 |
-|              |             | 2          | 로그인 > 취소 버튼   | Modal 닫기 테스트 | 닫기 버튼 클릭 | Modal이 닫힌다        |
+| 컬럼              | 설명                             | 예시                          |
+| ----------------- | -------------------------------- | ----------------------------- |
+| A (시나리오 ID)   | 테스트 시나리오 식별자           | TC-1.1                        |
+| B (e2e 시나리오)  | 시나리오 설명                    | 질문 입력                     |
+| C (UI path)       | 테스트 대상 UI 경로              | 홈 / 입력창                   |
+| D (action/when)   | 테스트 액션 또는 조건            | 메인화면 로드                 |
+| E (expected/then) | 기대 결과                        | 질문 입력창이 정상적으로 표시 |
+| F (테스트 ID)     | 개별 테스트 스텝 식별자          | TC-1.1.1                      |
+| G~ (결과 컬럼)    | 테스트 실행 결과 (자동 업데이트) | pass, fail, not_executed      |
 
-### 3️⃣ JSON 변환 설정
+### 3️⃣ 스프레드시트 공유 설정
 
-1. **Extensions** → **Export Sheet Data** → **Open Sidebar** 클릭
-2. **Format** 탭에서 **Custom** 선택
-3. 다음 템플릿을 복사하여 붙여넣기:
-
-```json
-{
-  "screenId": "<<Col[0]>>",
-  "group": "<<Col[1]>>",
-  "testId": "<<Col[2]>>",
-  "path": "<<Col[3]>>",
-  "description": "<<Col[4]>>",
-  "given": "<<Col[3]>>",
-  "when": "<<Col[5]>>",
-  "then": "<<Col[6]>>"
-}
-```
-
-4. **Export** 버튼 클릭하여 JSON 생성
-5. 생성된 JSON을 복사하여 시나리오 디렉토리에 저장
+1. Google Sheets에서 테스트할 스프레드시트를 엽니다
+2. **공유** 버튼 클릭
+3. 노션에 안내된 서비스 어카운트 이메일을 **Editor** 권한으로 추가
+4. 스프레드시트 URL을 복사합니다 (URL에 포함된 gid가 특정 시트를 지정합니다)
 
 ## 🚀 사용법
 
 ### 💻 CLI 명령어
 
 ```bash
-# 기본 사용법 (기본 디렉토리 사용)
-e2e-autogen
+# 기본 사용법
+e2e-autogen https://docs.google.com/spreadsheets/d/[SPREADSHEET_ID]/edit#gid=[GID]
 
-# 시나리오와 출력 디렉토리 지정
-e2e-autogen --scenarios ./playwright/scenarios --output ./playwright/__generated__
+# 출력 디렉토리 지정
+e2e-autogen https://docs.google.com/spreadsheets/d/[SPREADSHEET_ID]/edit#gid=[GID] --output ./playwright/__generated-stub__
 
 # 도움말 보기
 e2e-autogen --help
@@ -104,7 +110,7 @@ e2e-autogen --version
 
 ### ⚙️ 옵션
 
-- `--scenarios <dir>`: 시나리오 JSON 파일들이 있는 디렉토리 (기본값: `./scenarios`)
+- `<url>`: Google Sheets 스프레드시트 URL (필수) - URL에 포함된 gid로 시트 지정
 - `--output <dir>`: 생성된 테스트 파일을 저장할 디렉토리 (기본값: `./__generated__/playwright`)
 - `--help`, `-h`: 도움말 표시
 - `--version`, `-v`: 버전 정보 표시
@@ -116,107 +122,97 @@ package.json에 스크립트를 추가하여 사용할 수 있습니다:
 ```json
 {
   "scripts": {
-    "generate-e2e": "e2e-autogen --scenarios ./playwright/scenarios --output ./playwright/__generated__"
+    "generate-e2e": "e2e-autogen https://docs.google.com/spreadsheets/d/[SPREADSHEET_ID]/edit#gid=[GID] --output ./playwright/__generated-stub__"
   }
 }
 ```
 
-## 📝 입력 JSON 파일 구조
+실제 사용 예시:
 
-시나리오 JSON 파일은 다음과 같은 구조여야 합니다:
-
-```json
-[
-  {
-    "screenId": "login-001",
-    "group": "기본 로그인",
-    "testId": "1",
-    "path": "/login",
-    "description": "정상 로그인",
-    "given": "/login",
-    "when": "올바른 계정 정보를 입력하면",
-    "then": "메인 페이지로 이동한다"
-  },
-  {
-    "screenId": "",
-    "group": "",
-    "testId": "2",
-    "path": "",
-    "description": "잘못된 비밀번호",
-    "given": "",
-    "when": "잘못된 비밀번호를 입력하면",
-    "then": "오류 메시지가 표시된다"
-  }
-]
+```bash
+yarn generate-e2e
 ```
 
-> **참고**: 빈 필드(`screenId`, `group`, `path` 등)는 자동으로 이전 값으로 채워집니다.
+## 🎯 생성된 테스트 코드 예시
+
+Google Sheets 데이터에서 다음과 같은 Playwright 테스트 스텁 코드가 생성됩니다:
+
+```typescript
+// 📝 Auto-generated by E2E-Autogen
+// 🔧 Generated from: TC-1.1
+
+import { test } from "@playwright/test";
+
+test("[TC-1.1] 질문 입력", async ({ page }) => {
+  await test.step("[TC-1.1.1] 메인화면 로드 -> 질문 입력창이 정상적으로 표시", async () => {
+    // 📍 UI Path: 홈 / 입력창
+    // 🎬 When: 메인화면 로드
+    // ✅ Then: 질문 입력창이 정상적으로 표시
+  });
+
+  await test.step("[TC-1.1.2] 질문 입력창에 문자 입력 -> 정상적으로 입력됨", async () => {
+    // 📍 UI Path: 홈 / 입력창
+    // 🎬 When: 질문 입력창에 문자 입력
+    // ✅ Then: 정상적으로 입력됨
+  });
+
+  await test.step("[TC-1.1.3] 입력 완료 -> 전송 버튼 활성화", async () => {
+    // 📍 UI Path: 홈 / 입력창
+    // 🎬 When: 입력 완료
+    // ✅ Then: 전송 버튼 활성화
+  });
+});
+```
+
+> **💡 스텁 코드 특징**
+>
+> - 각 테스트 케이스는 여러 스텝으로 구성됩니다
+> - 실제 구현 로직은 포함되지 않으며, 개발자가 직접 추가해야 합니다 (playwright test generator를 활용하면 빠르게 작성 가능합니다.)
+> - Given/When/Then 패턴을 따르는 BDD 스타일 주석이 포함됩니다
+> - 테스트 실행 후 결과가 자동으로 Google Sheets에 업데이트됩니다 (향후 기능)
 
 ## 📁 생성된 파일 구조
 
 ```
 <output-directory>/
-└── <sheet-name>/              # JSON 파일명 기반 폴더
-    └── <screen-id>.spec.ts    # screenId별 테스트 파일
+└── TC-1.spec.ts   # sheetId(대분류)별 테스트 파일
 ```
 
-예시:
+## 🔮 향후 기능
 
-```
-__generated__/playwright/
-├── login/
-│   └── login-001.spec.ts
-└── user-management/
-    ├── user-001.spec.ts
-    └── user-002.spec.ts
-```
+### 📊 테스트 결과 자동 업데이트
 
-## 🎯 생성된 테스트 코드 예시
+테스트 실행 결과를 Google Sheets에 자동으로 업데이트하는 기능입니다:
 
-```typescript
-// 📝 Auto-generated by E2E-Autogen
+**📍 결과 기록 방식**
 
-import { test } from "@playwright/test";
+- **위치**: 기존 컬럼(A~F) 다음에 결과 컬럼들이 자동으로 추가됩니다
+- **구조**: 결과 + 실행 날짜/시간 컬럼으로 구성됩니다
+- **색상 구분**: 결과에 따라 자동으로 색상이 적용됩니다
 
-test.describe("기본 로그인", () => {
-  test.fixme("[LOGIN_001] 정상 로그인", async ({ page }) => {
-    /**
-     * 🔍 Test Metadata
-     * ├── ID: LOGIN_001
-     * ├── Path: /login
-     * └── Description: 정상 로그인
-     */
-    // 🎯 Given: /login
-    // 🎬 When: 올바른 계정 정보를 입력하면
-    // ✅ Then: 메인 페이지로 이동한다
-    // 🚧 구현 후 fixme를 제거하세요.
-  });
-});
-```
+**🎯 지원 결과 유형**
 
-## ⚡ 데이터 처리 과정
+- 🟢 `pass`: 테스트 성공 (녹색)
+- 🔴 `fail`: 테스트 실패 (빨간색)
+- ⚪ `not_executed`: 미실행 (회색)
+- 🟡 `manual_only`: 수동 테스트만 가능 (노란색)
 
-1. **JSON 파싱**: 시나리오 디렉토리의 모든 `.json` 파일을 읽습니다
-2. **데이터 정규화**: 빈 필드를 이전 값으로 채우고 testId를 3자리 형식으로 변환합니다
-3. **그룹화**: `sheetId` → `screenId` → `group` → `tests` 구조로 재구성합니다
-4. **코드 생성**: 각 screenId별로 Playwright 테스트 파일을 생성합니다
+**⚡ 자동화 기능**
 
-## 🏗️ 프로젝트 구조
+- **실시간 업데이트**: Playwright 테스트 실행 후 결과가 즉시 시트에 반영
+- **이력 관리**: 실행 날짜와 시간을 `YYYY.MM.DD:HH:mm` 형식으로 기록
+- **배치 업데이트**: 여러 테스트 케이스 결과를 한 번에 업데이트
 
-```
-e2e-autogen/
-├── core/
-│   ├── cli.ts            # CLI 진입점
-│   ├── autogen.ts        # 메인 처리 클래스
-│   ├── parser.ts         # JSON 파싱 및 정규화
-│   ├── generator.ts      # 테스트 코드 생성
-│   └── types/
-│       └── index.ts      # 타입 정의
-├── dist/                 # 빌드 결과물
-├── scenarios/            # 시나리오 JSON 파일들 (예시)
-└── package.json
-```
+**🔧 활용 방안**
+
+- QA 팀의 테스트 진행 상황 실시간 추적
+- 자동/수동 테스트 결과 통합 관리
+- 테스트 이력 데이터 분석 및 리포팅
+
+> **💡 Editor 권한 필요**
+>
+> 결과 자동 업데이트 기능을 위해 서비스 어카운트에 **Editor** 권한이 필요합니다.
 
 ## 📄 라이선스
 
-MIT
+MIT © dhlab-fe
