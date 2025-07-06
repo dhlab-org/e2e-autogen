@@ -4,9 +4,14 @@ import {
   TScenarioData,
   TStepData,
   TValidationError,
-} from "./types";
+} from "../types";
 
-class ScenarioParser implements TContract {
+type TScenarioParserContract = {
+  parseScenarioFile(filePath: string): Promise<TScenarioData[]>;
+  validateScenarios(scenarios: TScenarioData[]): void;
+};
+
+class ScenarioParser implements TScenarioParserContract {
   constructor() {}
 
   async parseScenarioFile(filePath: string): Promise<TScenarioData[]> {
@@ -181,8 +186,3 @@ class ScenarioParser implements TContract {
 }
 
 export { ScenarioParser };
-
-type TContract = {
-  parseScenarioFile(filePath: string): Promise<TScenarioData[]>;
-  validateScenarios(scenarios: TScenarioData[]): void;
-};

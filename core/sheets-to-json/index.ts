@@ -1,5 +1,5 @@
 import { ColumnUtil } from "./column-util";
-import { ScenarioSheet } from "./converter";
+import { ScenarioSheet } from "./scenario-sheet";
 import { DataRangeDetector } from "./data-range-detector";
 import { GoogleSheetsService } from "./google-sheets-service";
 import { ScenarioDataConverter } from "./scenario-data-converter";

@@ -1,19 +1,27 @@
 import * as fs from "fs-extra";
 import { TestCodeGenerator } from "./generator";
 import { ScenarioParser } from "./parser";
-import { DEFAULT_DIRECTORIES, TProcessingError, TScenarioData } from "./types";
+import { DEFAULT_DIRECTORIES, TProcessingError, TScenarioData } from "../types";
+
+type TE2EAutogenContract = {
+  generate(scenarioPath: string, outputDir?: string): Promise<void>;
+  generateFromData(
+    scenarios: TScenarioData[],
+    outputDir?: string
+  ): Promise<void>;
+};
 
 /**
  * E2E 테스트 자동 생성 메인 클래스
  * Google Sheets 기반 시나리오를 Playwright 테스트 스텁 코드로 변환
  */
-class E2EAutogen implements TContract {
+class E2EAutogen implements TE2EAutogenContract {
   readonly #parser: ScenarioParser;
   readonly #generator: TestCodeGenerator;
 
-  constructor() {
-    this.#parser = new ScenarioParser();
-    this.#generator = new TestCodeGenerator();
+  constructor(parser: ScenarioParser, generator: TestCodeGenerator) {
+    this.#parser = parser;
+    this.#generator = generator;
   }
 
   /**
@@ -105,11 +113,3 @@ class E2EAutogen implements TContract {
 }
 
 export { E2EAutogen };
-
-type TContract = {
-  generate(scenarioPath: string, outputDir?: string): Promise<void>;
-  generateFromData(
-    scenarios: TScenarioData[],
-    outputDir?: string
-  ): Promise<void>;
-};

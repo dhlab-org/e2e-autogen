@@ -4,9 +4,9 @@ const typescript = require("@rollup/plugin-typescript");
 const json = require("@rollup/plugin-json");
 
 module.exports = {
-  input: "core/cli.ts",
+  input: "core/index.ts",
   output: {
-    file: "dist/cli.js",
+    file: "dist/index.js",
     format: "cjs",
   },
   plugins: [
