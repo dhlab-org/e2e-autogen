@@ -1,6 +1,7 @@
 const resolve = require("@rollup/plugin-node-resolve");
 const commonjs = require("@rollup/plugin-commonjs");
 const typescript = require("@rollup/plugin-typescript");
+const json = require("@rollup/plugin-json");
 
 module.exports = {
   input: "core/cli.ts",
@@ -9,6 +10,7 @@ module.exports = {
     format: "cjs",
   },
   plugins: [
+    json(),
     resolve({
       preferBuiltins: true,
     }),
