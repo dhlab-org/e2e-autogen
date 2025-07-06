@@ -31,17 +31,14 @@ export type TProcessingError = {
   originalError?: Error;
 };
 
-// ===== 유틸리티 타입 =====
-export type TFileExtension = ".json" | ".ts" | ".spec.ts";
-
-export type TDirectoryStructure = {
+// ===== 디렉토리 구조 =====
+type TDirectoryStructure = {
   root: string;
   scenarios: string;
   generated: string;
   playwright: string;
 };
 
-// ===== 상수 =====
 export const DEFAULT_DIRECTORIES: TDirectoryStructure = {
   root: ".",
   scenarios: "./scenarios",

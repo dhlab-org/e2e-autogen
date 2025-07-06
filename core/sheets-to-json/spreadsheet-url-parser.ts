@@ -1,10 +1,10 @@
-type TSpreadsheetUrlParserContract = {
+type TContract = {
   spreadsheetId(): string;
   gid(): string | null;
   url(): string;
 };
 
-class SpreadsheetUrlParser implements TSpreadsheetUrlParserContract {
+class SpreadsheetUrlParser implements TContract {
   readonly #url: string;
   readonly #spreadsheetId: string;
   readonly #gid: string | null;

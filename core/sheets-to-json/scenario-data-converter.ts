@@ -1,11 +1,11 @@
 import { TScenarioData } from "../types";
 import { COLUMN_MAPPING } from "./config";
 
-type TScenarioDataConverterContract = {
+type TContract = {
   convertToScenarioData(rows: any[][]): TScenarioData[];
 };
 
-class ScenarioDataConverter implements TScenarioDataConverterContract {
+class ScenarioDataConverter implements TContract {
   readonly #columnMapping: typeof COLUMN_MAPPING;
 
   constructor() {

@@ -1,16 +1,10 @@
 import { DEFAULT_DIRECTORIES } from "../types";
 
-type TCliOptions = {
-  sheetsUrl: string;
-  outputDir: string;
-  help: boolean;
-  version: boolean;
+type TContract = {
+  options(): TCliOptions;
 };
 
-/**
- * CLI 인자를 파싱하는 역할을 담당한다
- */
-class CliArgumentParser implements TCliArgumentParser {
+class CliArgumentParser implements TContract {
   readonly #args: string[];
 
   constructor(args: string[]) {
@@ -84,6 +78,9 @@ class CliArgumentParser implements TCliArgumentParser {
 
 export { CliArgumentParser, type TCliOptions };
 
-type TCliArgumentParser = {
-  options(): TCliOptions;
+type TCliOptions = {
+  sheetsUrl: string;
+  outputDir: string;
+  help: boolean;
+  version: boolean;
 };

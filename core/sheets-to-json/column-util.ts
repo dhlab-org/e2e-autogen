@@ -1,6 +1,6 @@
 import { COLUMN_CONFIG } from "./config";
 
-type TColumnUtilContract = {
+type TContract = {
   columnLetterToNumber(columnLetter: string): number;
   numberToColumnLetter(num: number): string;
   detectLastColumn(headerRow: any[]): string;
@@ -8,7 +8,7 @@ type TColumnUtilContract = {
   resultRange(resultColumn: string, startRow?: number, endRow?: number): string;
 };
 
-class ColumnUtil implements TColumnUtilContract {
+class ColumnUtil implements TContract {
   constructor() {}
 
   /**

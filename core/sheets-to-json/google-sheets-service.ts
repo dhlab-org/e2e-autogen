@@ -1,7 +1,7 @@
 import { google } from "googleapis";
 import { GOOGLE_SHEETS_CONFIG } from "./config";
 
-type TGoogleSheetsServiceContract = {
+type TContract = {
   authorize(): Promise<void>;
   getSpreadsheetInfo(spreadsheetId: string): Promise<any>;
   readValues(spreadsheetId: string, range: string): Promise<any[][]>;
@@ -9,7 +9,7 @@ type TGoogleSheetsServiceContract = {
   authorized(): boolean;
 };
 
-class GoogleSheetsService implements TGoogleSheetsServiceContract {
+class GoogleSheetsService implements TContract {
   readonly #credentialsPath: string;
   readonly #scopes: string[];
   #auth: any = null;

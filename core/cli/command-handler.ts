@@ -1,12 +1,15 @@
 import * as fs from "fs-extra";
 import { TCliOptions } from "./argument-parser";
 import { createScenarioSheet } from "../sheets-to-json";
-import { createStubGenerator } from "../stub-generator";
+import { PlaywrightStubGenerator } from "../stub-generator";
 
-/**
- * CLI 명령어 실행을 담당한다
- */
-class CommandHandler implements TCommandHandler {
+type TContract = {
+  generateTestCode(options: TCliOptions): Promise<void>;
+  showVersion(): void;
+  showUsage(): void;
+};
+
+class CommandHandler implements TContract {
   async generateTestCode(options: TCliOptions): Promise<void> {
     console.log(`🔗 Google Sheets URL: ${options.sheetsUrl}`);
     console.log(`📁 출력 디렉토리: ${options.outputDir}`);
@@ -17,8 +20,8 @@ class CommandHandler implements TCommandHandler {
       const scenarioSheet = createScenarioSheet(options.sheetsUrl);
       const scenarios = await scenarioSheet.scenarios();
 
-      const autogen = createStubGenerator();
-      await autogen.generateFromData(scenarios, options.outputDir);
+      const stubGenerator = new PlaywrightStubGenerator();
+      await stubGenerator.generate(scenarios, options.outputDir);
     } catch (error) {
       console.error("\n❌ 작업 실패:", error);
       throw error;
@@ -51,9 +54,3 @@ class CommandHandler implements TCommandHandler {
 }
 
 export { CommandHandler };
-
-type TCommandHandler = {
-  generateTestCode(options: TCliOptions): Promise<void>;
-  showVersion(): void;
-  showUsage(): void;
-};

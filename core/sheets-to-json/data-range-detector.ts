@@ -3,11 +3,11 @@ import { SpreadsheetUrlParser } from "./spreadsheet-url-parser";
 import { ColumnUtil } from "./column-util";
 import { GOOGLE_SHEETS_CONFIG } from "./config";
 
-type TDataRangeDetectorContract = {
+type TContract = {
   detectDataRange(): Promise<TDataRangeInfo>;
 };
 
-class DataRangeDetector implements TDataRangeDetectorContract {
+class DataRangeDetector implements TContract {
   readonly #sheetsService: GoogleSheetsService;
   readonly #urlParser: SpreadsheetUrlParser;
   readonly #columnUtil: ColumnUtil;

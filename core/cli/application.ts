@@ -1,10 +1,11 @@
 import { CliArgumentParser } from "./argument-parser";
 import { CommandHandler } from "./command-handler";
 
-/**
- * CLI 애플리케이션의 전체 실행을 관리한다
- */
-class CliApplication implements TCliApplication {
+type TContract = {
+  run(): Promise<void>;
+};
+
+class CliApplication implements TContract {
   readonly #argumentParser: CliArgumentParser;
   readonly #commandHandler: CommandHandler;
 
@@ -45,7 +46,3 @@ class CliApplication implements TCliApplication {
 }
 
 export { CliApplication };
-
-type TCliApplication = {
-  run(): Promise<void>;
-};

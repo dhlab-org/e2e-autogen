@@ -5,7 +5,7 @@ import { DataRangeDetector, TDataRangeInfo } from "./data-range-detector";
 import { ScenarioDataConverter } from "./scenario-data-converter";
 import { ColumnUtil } from "./column-util";
 
-type TScenarioSheetContract = {
+type TContract = {
   scenarios: () => Promise<TScenarioData[]>;
   lastColumn(): string | null;
   resultColumn(): string | null;
@@ -15,7 +15,7 @@ type TScenarioSheetContract = {
   spreadsheetId(): string | null;
 };
 
-class ScenarioSheet implements TScenarioSheetContract {
+class ScenarioSheet implements TContract {
   readonly #urlParser: SpreadsheetUrlParser;
   readonly #sheetsService: GoogleSheetsService;
   readonly #rangeDetector: DataRangeDetector;
