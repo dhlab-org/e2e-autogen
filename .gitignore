@@ -1,3 +1,5 @@
+credentials.json
+
 # Dependencies
 node_modules
 .pnp.*
