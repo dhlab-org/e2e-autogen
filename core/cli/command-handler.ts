@@ -1,6 +1,6 @@
 import * as fs from "fs-extra";
 import { TCliOptions } from "./argument-parser";
-import { createScenarioSheet } from "../sheets-to-json";
+import { createScenarioCollector } from "../sheets-to-json";
 import { PlaywrightStubGenerator } from "../stub-generator";
 
 type TContract = {
@@ -17,8 +17,8 @@ class CommandHandler implements TContract {
     try {
       await fs.ensureDir(options.outputDir);
 
-      const scenarioSheet = createScenarioSheet(options.sheetsUrl);
-      const scenarios = await scenarioSheet.scenarios();
+      const collector = createScenarioCollector(options.sheetsUrl);
+      const scenarios = await collector.collect();
 
       const stubGenerator = new PlaywrightStubGenerator();
       await stubGenerator.generate(scenarios, options.outputDir);

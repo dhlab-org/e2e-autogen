@@ -1,3 +1,5 @@
+.cursor
+
 # Dependencies
 node_modules
 .pnp.*
