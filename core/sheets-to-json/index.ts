@@ -1,28 +1,14 @@
-import { ColumnUtil } from "./column-util";
-import { ScenarioSheet } from "./scenario-sheet";
-import { DataRangeDetector } from "./data-range-detector";
 import { GoogleSheetsService } from "./google-sheets-service";
-import { ScenarioDataConverter } from "./scenario-data-converter";
 import { SpreadsheetUrlParser } from "./spreadsheet-url-parser";
+import { ScenarioSheetFactory } from "./scenario-sheet-factory";
+import { ScenarioCollector } from "./scenario-collector";
 
-function createScenarioSheet(url: string): ScenarioSheet {
-  const urlParser = new SpreadsheetUrlParser(url);
+function createScenarioCollector(url: string): ScenarioCollector {
+  const parser = new SpreadsheetUrlParser(url);
   const sheetsService = new GoogleSheetsService();
-  const columnUtil = new ColumnUtil();
-  const rangeDetector = new DataRangeDetector(
-    sheetsService,
-    urlParser,
-    columnUtil
-  );
-  const dataConverter = new ScenarioDataConverter();
+  const factory = new ScenarioSheetFactory(sheetsService);
 
-  return new ScenarioSheet(
-    urlParser,
-    sheetsService,
-    rangeDetector,
-    dataConverter,
-    columnUtil
-  );
+  return new ScenarioCollector(url, parser, sheetsService, factory);
 }
 
-export { createScenarioSheet };
+export { createScenarioCollector };

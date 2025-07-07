@@ -19,11 +19,5 @@
     "emitDecoratorMetadata": true
   },
   "include": ["core/**/*"],
-  "exclude": [
-    "node_modules",
-    "dist",
-    "example/__generated__",
-    "scenarios",
-    ".yarn"
-  ]
+  "exclude": ["node_modules", "dist", ".yarn"]
 }
