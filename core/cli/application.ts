@@ -37,7 +37,11 @@ class CliApplication implements TContract {
         process.exit(1);
       }
 
-      await this.#commandHandler.generateTestCode(options);
+      if (options.command === "update") {
+        await this.#commandHandler.updateTestResults(options);
+      } else {
+        await this.#commandHandler.generateTestCode(options);
+      }
     } catch (error) {
       console.error("❌ 예상치 못한 오류:", error);
       process.exit(1);

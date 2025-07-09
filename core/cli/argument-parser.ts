@@ -13,13 +13,24 @@ class CliArgumentParser implements TContract {
 
   options(): TCliOptions {
     const options: TCliOptions = {
+      command: "generate",
       sheetsUrl: "",
       outputDir: DEFAULT_DIRECTORIES.playwright,
+      resultsPath: "",
       help: false,
       version: false,
     };
 
-    for (let i = 0; i < this.#args.length; i++) {
+    let i = 0;
+
+    // ===== 1단계: 서브커맨드 감지 (generate | update) =====
+    if (this.#args[i] === "generate" || this.#args[i] === "update") {
+      options.command = this.#args[i] as "generate" | "update";
+      i++; // 서브커맨드 건너뛰기
+    }
+
+    // ===== 2단계: 나머지 옵션 파싱 =====
+    for (; i < this.#args.length; i++) {
       const arg = this.#args[i];
 
       switch (arg) {
@@ -44,6 +55,15 @@ class CliArgumentParser implements TContract {
         case "--help":
         case "-h":
           options.help = true;
+          break;
+
+        case "--results":
+        case "-r":
+          options.resultsPath = this.#nextArgument(
+            i,
+            "--results 옵션에는 Playwright JSON 리포터 파일 경로가 필요합니다"
+          );
+          i++;
           break;
 
         case "--version":
@@ -79,8 +99,10 @@ class CliArgumentParser implements TContract {
 export { CliArgumentParser, type TCliOptions };
 
 type TCliOptions = {
+  command: "generate" | "update";
   sheetsUrl: string;
   outputDir: string;
+  resultsPath: string;
   help: boolean;
   version: boolean;
 };
