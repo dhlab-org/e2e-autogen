@@ -11,6 +11,8 @@ export const COLUMN_MAPPING = {
   when: 3, // D: action/when
   then: 4, // E: expected/then
   testId: 5, // F: 테스트 ID
+  tag: 6, // G: 태그
+  comment: 7, // H: 코멘트
 } as const;
 
 /**

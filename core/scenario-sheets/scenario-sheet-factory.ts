@@ -1,7 +1,7 @@
-import { GoogleSheetsService } from "./google-sheets-service";
-import { SpreadsheetUrlParser } from "./spreadsheet-url-parser";
-import { ColumnUtil } from "./column-util";
-import { DataRangeDetector } from "./data-range-detector";
+import { GoogleSheetsService } from "../sheets/google-sheets-service";
+import { SpreadsheetUrlParser } from "../sheets/spreadsheet-url-parser";
+import { ColumnUtil } from "../sheets/column-util";
+import { DataRangeDetector } from "../sheets/data-range-detector";
 import { ScenarioDataConverter } from "./scenario-data-converter";
 import { ScenarioSheet } from "./scenario-sheet";
 

@@ -1,6 +1,6 @@
 import { TScenarioData } from "../types";
-import { GoogleSheetsService } from "./google-sheets-service";
-import { SpreadsheetUrlParser } from "./spreadsheet-url-parser";
+import { GoogleSheetsService } from "../sheets/google-sheets-service";
+import { SpreadsheetUrlParser } from "../sheets/spreadsheet-url-parser";
 import { ScenarioSheetFactory } from "./scenario-sheet-factory";
 
 type TContract = {

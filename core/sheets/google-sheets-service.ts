@@ -7,6 +7,13 @@ type TContract = {
   readValues(spreadsheetId: string, range: string): Promise<any[][]>;
   getSheetNameByGid(spreadsheetId: string, gid: string): Promise<string | null>;
   authorized(): boolean;
+  updateValues(
+    spreadsheetId: string,
+    range: string,
+    values: any[][],
+    valueInputOption?: "RAW" | "USER_ENTERED"
+  ): Promise<void>;
+  batchUpdate(spreadsheetId: string, requests: any[]): Promise<void>;
 };
 
 class GoogleSheetsService implements TContract {
@@ -124,6 +131,57 @@ class GoogleSheetsService implements TContract {
    */
   authorized(): boolean {
     return this.#auth !== null && this.#sheets !== null;
+  }
+
+  /**
+   * 시트 서식 / 데이터유효성 등을 위한 batchUpdate
+   */
+  async batchUpdate(spreadsheetId: string, requests: any[]): Promise<void> {
+    if (!this.#sheets) {
+      throw new Error("인증이 필요합니다. authorize()를 먼저 호출하세요.");
+    }
+
+    if (!requests || requests.length === 0) return;
+
+    try {
+      await this.#sheets.spreadsheets.batchUpdate({
+        spreadsheetId,
+        requestBody: {
+          requests,
+        },
+      });
+    } catch (error) {
+      console.error("❌ batchUpdate 실패:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * 시트 데이터 업데이트
+   */
+  async updateValues(
+    spreadsheetId: string,
+    range: string,
+    values: any[][],
+    valueInputOption: "RAW" | "USER_ENTERED" = "RAW"
+  ): Promise<void> {
+    if (!this.#sheets) {
+      throw new Error("인증이 필요합니다. authorize()를 먼저 호출하세요.");
+    }
+
+    try {
+      await this.#sheets.spreadsheets.values.update({
+        spreadsheetId,
+        range,
+        valueInputOption,
+        requestBody: {
+          values,
+        },
+      });
+    } catch (error) {
+      console.error("❌ 시트 데이터 업데이트 실패:", error);
+      throw error;
+    }
   }
 }
 

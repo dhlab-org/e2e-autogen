@@ -1,5 +1,5 @@
-import { GoogleSheetsService } from "./google-sheets-service";
-import { SpreadsheetUrlParser } from "./spreadsheet-url-parser";
+import { GoogleSheetsService } from "../sheets/google-sheets-service";
+import { SpreadsheetUrlParser } from "../sheets/spreadsheet-url-parser";
 import { ScenarioSheetFactory } from "./scenario-sheet-factory";
 import { ScenarioCollector } from "./scenario-collector";
 
