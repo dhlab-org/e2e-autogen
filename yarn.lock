@@ -21,8 +21,6 @@ __metadata:
     tslib: "npm:^2.8.1"
     tsx: "npm:^4.6.0"
     typescript: "npm:^5"
-  peerDependencies:
-    "@playwright/test": ^1.53.0
   bin:
     e2e-autogen: dist/index.js
   languageName: unknown
