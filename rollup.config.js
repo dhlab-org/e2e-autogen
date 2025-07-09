@@ -20,5 +20,4 @@ module.exports = {
       module: "esnext",
     }),
   ],
-  external: ["@playwright/test"],
 };
