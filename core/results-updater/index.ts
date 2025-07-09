@@ -1,9 +1,11 @@
-import { GoogleSheetsService } from "../sheets-to-json/google-sheets-service";
-import { SpreadsheetUrlParser } from "../sheets-to-json/spreadsheet-url-parser";
-import { ColumnUtil } from "../sheets-to-json/column-util";
-import { DataRangeDetector } from "../sheets-to-json/data-range-detector";
+import {
+  COLUMN_MAPPING,
+  GoogleSheetsService,
+  SpreadsheetUrlParser,
+  ColumnUtil,
+  DataRangeDetector,
+} from "../sheets";
 import { ResultsJsonParser, TResultStatus } from "./results-json-parser";
-import { COLUMN_MAPPING } from "../sheets-to-json/config";
 
 type TContract = {
   update(): Promise<void>;
@@ -208,7 +210,7 @@ class TestResultUpdater implements TContract {
     const dd = String(date.getDate()).padStart(2, "0");
     const hh = String(date.getHours()).padStart(2, "0");
     const mi = String(date.getMinutes()).padStart(2, "0");
-    return `${yyyy}${mm}${dd}_${hh}:${mi}`;
+    return `${yyyy}${mm}${dd}:${hh}:${mi}`;
   }
 }
 

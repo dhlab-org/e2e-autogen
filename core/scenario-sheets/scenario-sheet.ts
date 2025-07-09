@@ -1,9 +1,12 @@
 import { TScenarioData } from "../types";
-import { GoogleSheetsService } from "./google-sheets-service";
-import { SpreadsheetUrlParser } from "./spreadsheet-url-parser";
-import { DataRangeDetector, TDataRangeInfo } from "./data-range-detector";
+import { GoogleSheetsService } from "../sheets/google-sheets-service";
+import { SpreadsheetUrlParser } from "../sheets/spreadsheet-url-parser";
+import {
+  DataRangeDetector,
+  TDataRangeInfo,
+} from "../sheets/data-range-detector";
 import { ScenarioDataConverter } from "./scenario-data-converter";
-import { ColumnUtil } from "./column-util";
+import { ColumnUtil } from "../sheets/column-util";
 
 type TContract = {
   scenarios: () => Promise<TScenarioData[]>;

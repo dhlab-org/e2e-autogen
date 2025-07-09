@@ -1,5 +1,5 @@
 import { TScenarioData } from "../types";
-import { COLUMN_MAPPING } from "./config";
+import { COLUMN_MAPPING } from "../sheets/config";
 
 type TContract = {
   convertToScenarioData(rows: any[][]): TScenarioData[];

@@ -1,6 +1,6 @@
 import * as fs from "fs-extra";
 import { TCliOptions } from "./argument-parser";
-import { createScenarioCollector } from "../sheets-to-json";
+import { createScenarioCollector } from "../scenario-sheets";
 import { PlaywrightStubGenerator } from "../stub-generator";
 import { TestResultUpdater } from "../results-updater";
 
