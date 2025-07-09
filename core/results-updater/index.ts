@@ -44,8 +44,6 @@ class TestResultUpdater implements TContract {
       grouped.set(prefix, bucket);
     }
 
-    console.log(">>>", grouped);
-
     // 3. Sheets 인증 및 시트 목록 조회
     await this.#sheetsService.authorize();
 
@@ -144,6 +142,60 @@ class TestResultUpdater implements TContract {
       dataRange,
       statusRows
     );
+
+    // === 서식 & 드롭다운 설정 ===
+    const sheetIdNum = Number(sheetMeta.gid);
+    const colIdx = this.#columnUtil.columnLetterToNumber(resultColumn) - 1; // 0-base
+
+    const requests: any[] = [
+      {
+        repeatCell: {
+          range: {
+            sheetId: sheetIdNum,
+            startRowIndex: 0,
+            endRowIndex: 2, // header two rows
+            startColumnIndex: colIdx,
+            endColumnIndex: colIdx + 1,
+          },
+          cell: {
+            userEnteredFormat: {
+              backgroundColor: { red: 0.85, green: 0.92, blue: 0.98 },
+              horizontalAlignment: "CENTER",
+              textFormat: { bold: true },
+            },
+          },
+          fields:
+            "userEnteredFormat(backgroundColor,horizontalAlignment,textFormat.bold)",
+        },
+      },
+      {
+        setDataValidation: {
+          range: {
+            sheetId: sheetIdNum,
+            startRowIndex: 2, // data rows start at index 2 (row 3)
+            endRowIndex: rows.length,
+            startColumnIndex: colIdx,
+            endColumnIndex: colIdx + 1,
+          },
+          rule: {
+            condition: {
+              type: "ONE_OF_LIST",
+              values: [
+                { userEnteredValue: "pass" },
+                { userEnteredValue: "fail" },
+                { userEnteredValue: "flaky" },
+                { userEnteredValue: "not_executed" },
+                { userEnteredValue: "manual_only" },
+              ],
+            },
+            strict: true,
+            showCustomUi: true,
+          },
+        },
+      },
+    ];
+
+    await this.#sheetsService.batchUpdate(spreadsheetId, requests);
 
     console.log(
       `✅ 업데이트 완료: ${sheetMeta.title} (${statusRows.length} rows)`

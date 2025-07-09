@@ -13,6 +13,7 @@ type TContract = {
     values: any[][],
     valueInputOption?: "RAW" | "USER_ENTERED"
   ): Promise<void>;
+  batchUpdate(spreadsheetId: string, requests: any[]): Promise<void>;
 };
 
 class GoogleSheetsService implements TContract {
@@ -130,6 +131,29 @@ class GoogleSheetsService implements TContract {
    */
   authorized(): boolean {
     return this.#auth !== null && this.#sheets !== null;
+  }
+
+  /**
+   * 시트 서식 / 데이터유효성 등을 위한 batchUpdate
+   */
+  async batchUpdate(spreadsheetId: string, requests: any[]): Promise<void> {
+    if (!this.#sheets) {
+      throw new Error("인증이 필요합니다. authorize()를 먼저 호출하세요.");
+    }
+
+    if (!requests || requests.length === 0) return;
+
+    try {
+      await this.#sheets.spreadsheets.batchUpdate({
+        spreadsheetId,
+        requestBody: {
+          requests,
+        },
+      });
+    } catch (error) {
+      console.error("❌ batchUpdate 실패:", error);
+      throw error;
+    }
   }
 
   /**
