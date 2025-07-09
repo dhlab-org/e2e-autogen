@@ -7,6 +7,14 @@ import {
 } from "../sheets";
 import { ResultsJsonParser, TResultStatus } from "./results-json-parser";
 
+const STATUS_LABEL: Record<TResultStatus, string> = {
+  pass: "✅ pass",
+  fail: "❌ fail",
+  flaky: "⚠️ flaky",
+  not_executed: "⏭️ not_executed",
+  manual_only: "📝 manual_only",
+};
+
 type TContract = {
   update(): Promise<void>;
 };
@@ -118,12 +126,12 @@ class TestResultUpdater implements TContract {
     for (const row of dataRows) {
       const testId: string = row[COLUMN_MAPPING.testId] || "";
       if (!testId) {
-        statusRows.push(["not_executed"]);
+        statusRows.push([STATUS_LABEL["not_executed"]]);
         continue;
       }
 
       const status = bucket.get(testId) ?? "not_executed";
-      statusRows.push([status]);
+      statusRows.push([STATUS_LABEL[status]]);
     }
 
     const resultColumn = rangeInfo.resultColumn;
@@ -183,11 +191,21 @@ class TestResultUpdater implements TContract {
             condition: {
               type: "ONE_OF_LIST",
               values: [
-                { userEnteredValue: "pass" },
-                { userEnteredValue: "fail" },
-                { userEnteredValue: "flaky" },
-                { userEnteredValue: "not_executed" },
-                { userEnteredValue: "manual_only" },
+                {
+                  userEnteredValue: STATUS_LABEL["pass"],
+                },
+                {
+                  userEnteredValue: STATUS_LABEL["fail"],
+                },
+                {
+                  userEnteredValue: STATUS_LABEL["flaky"],
+                },
+                {
+                  userEnteredValue: STATUS_LABEL["not_executed"],
+                },
+                {
+                  userEnteredValue: STATUS_LABEL["manual_only"],
+                },
               ],
             },
             strict: true,
