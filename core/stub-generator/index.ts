@@ -72,7 +72,7 @@ class PlaywrightStubGenerator implements TContract {
     outputDir: string
   ): Promise<void> {
     try {
-      const fileName = `${prefix}.spec.ts`;
+      const fileName = `${prefix}.stub.ts`;
       const filePath = path.join(outputDir, fileName);
 
       // 테스트 코드 생성
@@ -118,12 +118,13 @@ class PlaywrightStubGenerator implements TContract {
       .map((step) => this.#generateStep(step))
       .join("\n\n");
 
-    return `test("${scenarioTitle}", async ({ page }) => {
+    return `test.skip("${scenarioTitle}", async ({ page }) => {
 ${steps}
 });`;
   }
 
   #generateStep(step: TStepData): string {
+    const hasUiPath = step.uiPath.trim().length > 0;
     const hasWhen = step.when.trim().length > 0;
     const stepTitle = this.#sanitizeText(
       hasWhen
@@ -132,16 +133,17 @@ ${steps}
       true
     );
 
-    const whenComment = this.#sanitizeText(step.when);
-    const thenComment = this.#sanitizeText(step.then);
-    const whenSection = hasWhen ? `    // 🎬 When: ${whenComment}\n    \n` : "";
+    const uiPathSection = hasUiPath ? `// 📍 UI Path: ${step.uiPath}\n` : "";
+    const whenSection = hasWhen
+      ? `// 🎬 When: ${this.#sanitizeText(step.when)}\n`
+      : "";
+    const thenSection = `// ✅ Then: ${this.#sanitizeText(step.then)}\n`;
 
-    return `  await test.step("${stepTitle}", async () => {
-    // 📍 UI Path: ${step.uiPath}
-    
-${whenSection}    // ✅ Then: ${thenComment}
-    
-  });`;
+    return `  await test.step.skip("${stepTitle}", async () => {
+      ${uiPathSection}
+      ${whenSection}    
+      ${thenSection}
+    });`;
   }
 
   #sanitizeText(text: string, escapeQuotes: boolean = false): string {

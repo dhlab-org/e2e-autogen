@@ -179,7 +179,7 @@ test("[TC-1.1] 질문 입력", async ({ page }) => {
 
 ```
 <output-directory>/
-└── TC-1.spec.ts   # sheetId(대분류)별 테스트 파일
+└── TC-1.stub.ts   # sheetId(대분류)별 테스트 파일
 ```
 
 ## 🔮 향후 기능
