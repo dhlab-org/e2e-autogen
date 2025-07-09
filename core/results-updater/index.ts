@@ -1,6 +1,6 @@
 import { ColumnUtil } from "../sheets-to-json/column-util";
 import { GoogleSheetsService } from "../sheets-to-json/google-sheets-service";
-import { ResultsJsonParser } from "./results-json-parser";
+import { ResultsJsonParser, TResultStatus } from "./results-json-parser";
 
 type TContract = {
   update(): Promise<void>;
@@ -23,11 +23,25 @@ class TestResultUpdater implements TContract {
   }
 
   async update(): Promise<void> {
-    // 1. Parse test results
+    // 1. 결과 파싱
     const parser = new ResultsJsonParser(this.#resultsPath);
     const resultMap = await parser.parse();
 
-    console.log(">>>", resultMap);
+    if (resultMap.size === 0) {
+      console.warn("⚠️  결과가 비어 있습니다. 업데이트를 건너뜁니다.");
+      return;
+    }
+
+    // 2. prefix 별 그룹화 (TC-4.1.3 → TC-4)
+    const grouped = new Map<string, Map<string, TResultStatus>>();
+    for (const [testId, status] of resultMap.entries()) {
+      const prefix = testId.split(".")[0];
+      const bucket = grouped.get(prefix) ?? new Map<string, TResultStatus>();
+      bucket.set(testId, status);
+      grouped.set(prefix, bucket);
+    }
+
+    console.log(">>>", grouped);
   }
 }
 
