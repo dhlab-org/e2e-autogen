@@ -54,8 +54,27 @@ class DataRangeDetector implements TContract {
         return this.#createDefaultRangeInfo(targetRange);
       }
 
+      const firstRow = headerRows[0] || [];
       const secondRow = headerRows[1] || [];
-      const lastColumn = this.#columnUtil.detectLastColumn(secondRow);
+
+      // 두 헤더 행을 모두 고려하여 가장 오른쪽에 데이터가 존재하는 컬럼 탐지
+      let lastColumnIndex = -1;
+      const maxLen = Math.max(firstRow.length, secondRow.length);
+      for (let i = 0; i < maxLen; i++) {
+        const cell1 = firstRow[i];
+        const cell2 = secondRow[i];
+        const hasValue =
+          (cell1 && cell1.toString().trim() !== "") ||
+          (cell2 && cell2.toString().trim() !== "");
+        if (hasValue) lastColumnIndex = i;
+      }
+
+      // 값이 전혀 없을 경우 기본값 사용
+      if (lastColumnIndex < 0) lastColumnIndex = 0;
+
+      const lastColumn = this.#columnUtil.numberToColumnLetter(
+        lastColumnIndex + 1
+      );
       const actualRange = `A:${lastColumn}`;
       const resultColumn = this.#columnUtil.resultColumn(lastColumn);
 
