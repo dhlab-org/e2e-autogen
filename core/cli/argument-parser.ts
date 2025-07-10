@@ -19,6 +19,7 @@ class CliArgumentParser implements TContract {
       resultsPath: "",
       help: false,
       version: false,
+      credentialsPath: "playwright/.auth/credentials.json",
     };
 
     let i = 0;
@@ -71,6 +72,14 @@ class CliArgumentParser implements TContract {
           options.version = true;
           break;
 
+        case "--credentials":
+          options.credentialsPath = this.#nextArgument(
+            i,
+            "--credentials 옵션에는 Service Account 키 파일 경로가 필요합니다"
+          );
+          i++;
+          break;
+
         default:
           this.#handleDefaultArgument(arg, options);
           break;
@@ -105,4 +114,5 @@ type TCliOptions = {
   resultsPath: string;
   help: boolean;
   version: boolean;
+  credentialsPath: string;
 };

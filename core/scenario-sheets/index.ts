@@ -3,9 +3,12 @@ import { SpreadsheetUrlParser } from "../sheets/spreadsheet-url-parser";
 import { ScenarioSheetFactory } from "./scenario-sheet-factory";
 import { ScenarioCollector } from "./scenario-collector";
 
-function createScenarioCollector(url: string): ScenarioCollector {
+function createScenarioCollector(
+  url: string,
+  credentialsPath: string
+): ScenarioCollector {
   const parser = new SpreadsheetUrlParser(url);
-  const sheetsService = new GoogleSheetsService();
+  const sheetsService = new GoogleSheetsService(credentialsPath);
   const factory = new ScenarioSheetFactory(sheetsService);
 
   return new ScenarioCollector(url, parser, sheetsService, factory);

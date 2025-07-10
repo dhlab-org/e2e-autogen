@@ -1,4 +1,6 @@
 import { google } from "googleapis";
+import path from "path";
+import process from "process";
 import { GOOGLE_SHEETS_CONFIG } from "./config";
 
 type TContract = {
@@ -22,9 +24,9 @@ class GoogleSheetsService implements TContract {
   #auth: any = null;
   #sheets: any = null;
 
-  constructor() {
-    this.#credentialsPath = GOOGLE_SHEETS_CONFIG.CREDENTIALS_PATH;
-    this.#scopes = GOOGLE_SHEETS_CONFIG.SCOPES;
+  constructor(credentialsPath: string) {
+    this.#credentialsPath = path.join(process.cwd(), credentialsPath);
+    this.#scopes = [...GOOGLE_SHEETS_CONFIG.SCOPES];
   }
 
   /**
