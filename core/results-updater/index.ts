@@ -25,13 +25,14 @@ class TestResultUpdater implements TContract {
   readonly #sheetsService: GoogleSheetsService;
   readonly #columnUtil: ColumnUtil;
 
-  constructor(sheetsUrl: string, resultsPath: string) {
+  constructor(sheetsUrl: string, resultsPath: string, credentialsPath: string) {
     if (!sheetsUrl) throw new Error("sheetsUrl is required");
     if (!resultsPath) throw new Error("resultsPath is required");
+    if (!credentialsPath) throw new Error("credentialsPath is required");
 
     this.#sheetsUrl = sheetsUrl;
     this.#resultsPath = resultsPath;
-    this.#sheetsService = new GoogleSheetsService();
+    this.#sheetsService = new GoogleSheetsService(credentialsPath);
     this.#columnUtil = new ColumnUtil();
   }
 

@@ -1,6 +1,3 @@
-import path from "path";
-import process from "process";
-
 /**
  * 컬럼 매핑 설정 (스프레드시트 컬럼 순서)
  */
@@ -21,12 +18,6 @@ export const COLUMN_MAPPING = {
 export const GOOGLE_SHEETS_CONFIG = {
   // 인증 범위
   SCOPES: ["https://www.googleapis.com/auth/spreadsheets"],
-
-  // Service Account 키 파일 경로
-  CREDENTIALS_PATH: path.join(
-    process.cwd(),
-    "playwright/.auth/credentials.json"
-  ),
 
   // 헤더 행 감지를 위한 초기 범위 (두 번째 행까지 헤더 행으로 감지)
   HEADER_DETECTION_RANGE: "1:2",
