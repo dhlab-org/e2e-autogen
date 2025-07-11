@@ -37,12 +37,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/dhlab/e2e-autogen.git"
+    "url": "https://github.com/dhlab-org/e2e-autogen.git"
   },
   "bugs": {
-    "url": "https://github.com/dhlab/e2e-autogen/issues"
+    "url": "https://github.com/dhlab-org/e2e-autogen/issues"
   },
-  "homepage": "https://github.com/dhlab/e2e-autogen#readme",
+  "homepage": "https://github.com/dhlab-org/e2e-autogen#readme",
   "engines": {
     "node": ">=16.0.0"
   },
