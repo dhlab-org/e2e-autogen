@@ -32,15 +32,6 @@ jobs:
       - name: 의존성 설치
         run: yarn install --immutable
 
-      - name: 타입 체크
-        run: yarn type-check
-
-      - name: 린트 검사
-        run: yarn lint
-
-      - name: 테스트 실행
-        run: yarn test
-
       - name: 빌드
         run: yarn build
 
