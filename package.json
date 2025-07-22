@@ -26,7 +26,8 @@
     "@types/node": "^20.8.0",
     "rollup": "^4.44.0",
     "tsx": "^4.6.0",
-    "typescript": "^5"
+    "typescript": "^5",
+    "ts-pattern": "^5.7.1"
   },
   "keywords": [
     "playwright",
