@@ -1,14 +1,10 @@
 #!/usr/bin/env node
 
-import { createCliApplication } from "./cli";
+import { CliApplication } from "./cli-application";
 
-// 메인 실행
 if (require.main === module) {
   const args = process.argv.slice(2);
-  const app = createCliApplication(args);
+  const app = new CliApplication(args);
 
-  app.run().catch((error: Error) => {
-    console.error("❌ CLI 실행 중 오류:", error);
-    process.exit(1);
-  });
+  app.run();
 }

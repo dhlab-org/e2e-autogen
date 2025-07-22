@@ -1,24 +1,24 @@
 import * as fs from "fs-extra";
-import { TCliOptions } from "./argument-parser";
 import { createScenarioCollector } from "../scenario-sheets";
 import { PlaywrightStubGenerator } from "../stub-generator";
 import { TestResultUpdater } from "../results-updater";
+import { TGenerateOptions, TUpdateOptions } from "./types";
 
-type TContract = {
-  generateTestCode(options: TCliOptions): Promise<void>;
-  updateTestResults(options: TCliOptions): Promise<void>;
+type CommandHandlerContract = {
+  generateTestCode(options: TGenerateOptions): Promise<void>;
+  updateTestResults(options: TUpdateOptions): Promise<void>;
   showVersion(): void;
   showUsage(): void;
 };
 
-class CommandHandler implements TContract {
-  async generateTestCode(options: TCliOptions): Promise<void> {
+class CommandHandler implements CommandHandlerContract {
+  async generateTestCode(options: TGenerateOptions): Promise<void> {
     console.log(`🔗 Google Sheets URL: ${options.sheetsUrl}`);
-    console.log(`📁 출력 디렉토리: ${options.outputDir}`);
+    console.log(`📁 출력 디렉토리: ${options.generatedStubDir}`);
     console.log(`🔑 Service Account 키: ${options.credentialsPath}`);
 
     try {
-      await fs.ensureDir(options.outputDir);
+      await fs.ensureDir(options.generatedStubDir);
 
       const collector = createScenarioCollector(
         options.sheetsUrl,
@@ -27,31 +27,29 @@ class CommandHandler implements TContract {
       const scenarios = await collector.collect();
 
       const stubGenerator = new PlaywrightStubGenerator();
-      await stubGenerator.generate(scenarios, options.outputDir);
+      await stubGenerator.generate(scenarios, options.generatedStubDir);
     } catch (error) {
-      console.error("\n❌ 작업 실패:", error);
-      throw error;
+      throw new Error(`❌ 스텁 코드 생성 실패: ${error}`);
     }
   }
 
-  async updateTestResults(options: TCliOptions): Promise<void> {
+  async updateTestResults(options: TUpdateOptions): Promise<void> {
     console.log(`🔗 Google Sheets URL: ${options.sheetsUrl}`);
-    console.log(`📄 결과 JSON: ${options.resultsPath}`);
+    console.log(`📄 결과 JSON: ${options.jsonReporterPath}`);
     console.log(`🔑 Service Account 키: ${options.credentialsPath}`);
 
     try {
-      if (!options.resultsPath) {
-        throw new Error("--results 옵션이 필요합니다");
+      if (!options.jsonReporterPath) {
+        throw new Error("--reporter 옵션이 필요합니다");
       }
 
       new TestResultUpdater(
         options.sheetsUrl,
-        options.resultsPath,
+        options.jsonReporterPath,
         options.credentialsPath
       ).update();
     } catch (error) {
-      console.error("\n❌ 결과 업데이트 실패:", error);
-      throw error;
+      throw new Error(`❌ 결과 업데이트 실패: ${error}`);
     }
   }
 
@@ -62,9 +60,9 @@ class CommandHandler implements TContract {
 
   showUsage(): void {
     console.log(`
-사용법: e2e-autogen [옵션] <서브커맨드> [서브커맨드 옵션]
+사용법: e2e-autogen 서브커맨드 [옵션] <옵션 값>
 
-전역 옵션:
+플래그:
   -h, --help          도움말 표시
   -v, --version       버전 정보 표시
 
@@ -73,22 +71,23 @@ class CommandHandler implements TContract {
   update              Playwright 결과 JSON → Google Sheets 업데이트
 
 서브커맨드 공통 옵션:
-  --sheets, --url     Google Sheets URL (필수)
-  --credentials       Service Account 키 파일 경로 (기본값: playwright/.auth/credentials.json)
+  --sheets            Google Sheets URL (필수)
+  --credentials       Service Account 키 파일 경로 (기본값: ./playwright/.auth/credentials.json)
 
 generate 옵션:
-  --output, -o <dir>  출력 디렉토리 (기본값: ./__generated__/playwright)
+  --output <dir>  출력 디렉토리 (기본값: ./playwright/__generated-stub__)
 
 update 옵션:
-  --results, -r <file> Playwright JSON 리포터 파일 경로 (필수)
+  --reporter <file> Playwright JSON 리포터 파일 경로 (필수)
 
 예시:
   # 스텁 코드 생성
-  e2e-autogen generate --sheets "https://docs.google.com/..." -o ./playwright/__generated__
+  e2e-autogen generate --sheets "https://docs.google.com/..." \\
+                      --output ./playwright/__generated-stub__
 
   # 결과 업데이트
   e2e-autogen update --sheets "https://docs.google.com/..." \\
-                    --results ./playwright/reporters/results.json
+                    --reporter ./playwright/reporters/results.json
 
   # 커스텀 Service Account 키 사용
   e2e-autogen generate --sheets "https://docs.google.com/..." \\
@@ -97,4 +96,4 @@ update 옵션:
   }
 }
 
-export { CommandHandler };
+export { CommandHandler, type CommandHandlerContract };

@@ -14,7 +14,7 @@ type TContract = {
 class PlaywrightStubGenerator implements TContract {
   async generate(
     scenarios: TScenarioData[],
-    outputDir: string = DEFAULT_DIRECTORIES.playwright
+    outputDir: string = DEFAULT_DIRECTORIES.generatedStub
   ): Promise<void> {
     console.log(`🚀 시나리오 데이터 → ${outputDir}`);
 

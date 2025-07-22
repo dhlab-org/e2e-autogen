@@ -33,15 +33,11 @@ export type TProcessingError = {
 
 // ===== 디렉토리 구조 =====
 type TDirectoryStructure = {
-  root: string;
-  scenarios: string;
-  generated: string;
-  playwright: string;
+  generatedStub: string;
+  credentials: string;
 };
 
 export const DEFAULT_DIRECTORIES: TDirectoryStructure = {
-  root: ".",
-  scenarios: "./scenarios",
-  generated: "./__generated__",
-  playwright: "./__generated__/playwright",
+  generatedStub: "./playwright/__generated-stub__",
+  credentials: "./playwright/.auth/credentials.json",
 } as const;
