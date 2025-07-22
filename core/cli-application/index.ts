@@ -1,6 +1,11 @@
 import { match } from "ts-pattern";
 import { Command, CommandContract } from "./command";
-import { CommandHandler, type CommandHandlerContract } from "./command-handler";
+import {
+  generateTestCode,
+  showUsage,
+  showVersion,
+  updateTestResults,
+} from "./command-executors";
 
 type CliApplicationContract = {
   run(): Promise<void>;
@@ -8,31 +13,29 @@ type CliApplicationContract = {
 
 class CliApplication implements CliApplicationContract {
   readonly #command: CommandContract;
-  readonly #commandHandler: CommandHandlerContract;
 
   constructor(args: string[]) {
     this.#command = new Command(args);
-    this.#commandHandler = new CommandHandler();
   }
 
   async run(): Promise<void> {
     try {
       match(this.#command)
         .with({ type: "FLAG", flag: "HELP" }, () => {
-          this.#commandHandler.showUsage();
+          showUsage();
           process.exit(0);
         })
         .with({ type: "FLAG", flag: "VERSION" }, () => {
-          this.#commandHandler.showVersion();
+          showVersion();
           process.exit(0);
         })
         .with({ type: "SUB_COMMAND", subCommand: "GENERATE" }, async () => {
           const options = this.#command.optionsOf("GENERATE");
-          await this.#commandHandler.generateTestCode(options);
+          await generateTestCode(options);
         })
         .with({ type: "SUB_COMMAND", subCommand: "UPDATE" }, async () => {
           const options = this.#command.optionsOf("UPDATE");
-          await this.#commandHandler.updateTestResults(options);
+          await updateTestResults(options);
         })
         .exhaustive();
     } catch (error) {
