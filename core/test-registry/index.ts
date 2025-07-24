@@ -1,7 +1,6 @@
+import * as fs from "fs-extra";
 import { GoogleSpreadsheetsContract } from "../google-spreadsheets";
 import { Judge } from "./judge";
-import { TResultStatus } from "./types";
-import * as fs from "fs-extra";
 
 type TestRegistryContract = {
   logResults(googleSpreadsheets: GoogleSpreadsheetsContract): Promise<void>;
@@ -19,19 +18,13 @@ class TestRegistry implements TestRegistryContract {
   async logResults(
     googleSpreadsheets: GoogleSpreadsheetsContract
   ): Promise<void> {
-    // 1. JSON 리포터 읽기
+    // 1. 테스트 결과 채점
     const json = await this.#json();
+    const resultsPerSuite = this.#judge.resultsPerSuite(json);
 
-    // 2. 테스트 결과 파싱
-    const resultPerTestCase = this.#judge.resultPerTestCase(json);
-
-    // 3. TC prefix(시트 단위)로 그룹화: Map<prefix, Map<testId, status>>
-    const resultsPerSuite = this.#resultsPerSuite(resultPerTestCase);
-
-    // 4. 스프레드시트 메타 로드
+    // 2. 각 시트에 결과 기록
     const { sheetsMetaMapByPrefix } = await googleSpreadsheets.sheets();
 
-    // 5. 각 시트에 결과 기록
     for (const [suiteId, resultPerTestId] of resultsPerSuite) {
       const meta = sheetsMetaMapByPrefix.get(suiteId);
       if (!meta) {
@@ -63,21 +56,6 @@ class TestRegistry implements TestRegistryContract {
     }
   }
 
-  #resultsPerSuite(
-    resultPerTestCase: Map<TTestCaseId, TResultStatus>
-  ): Map<TTestSuiteId, Map<TTestCaseId, TResultStatus>> {
-    return Array.from(resultPerTestCase).reduce(
-      (suiteMap, [testId, status]) => {
-        const suiteId = testId.split(".")[0];
-        const bucket = suiteMap.get(suiteId) ?? new Map();
-        bucket.set(testId, status);
-        suiteMap.set(suiteId, bucket);
-        return suiteMap;
-      },
-      new Map<TTestSuiteId, Map<TTestCaseId, TResultStatus>>()
-    );
-  }
-
   async #json() {
     try {
       const raw = await fs.readFile(this.#jsonReporterPath, "utf8");
@@ -98,6 +76,3 @@ class TestRegistry implements TestRegistryContract {
 }
 
 export { TestRegistry, type TestRegistryContract };
-
-type TTestSuiteId = string; // TC-x
-type TTestCaseId = string; // TC-x.x.x

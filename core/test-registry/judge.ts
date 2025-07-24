@@ -1,14 +1,32 @@
-import { TResultStatus } from "./types";
+import { TResultStatus, TTestSuiteId } from "./types";
 
 type TTestCaseId = string;
 
 type JudgeContract = {
-  resultPerTestCase(playwrightJson: any): Map<TTestCaseId, TResultStatus>;
+  resultsPerSuite(
+    playwrightJson: any
+  ): Map<TTestSuiteId, Map<TTestCaseId, TResultStatus>>;
+
   labelOf(result: TResultStatus): string;
 };
 
 class Judge implements JudgeContract {
-  resultPerTestCase(json: any): Map<TTestCaseId, TResultStatus> {
+  resultsPerSuite(playwrightJson: any) {
+    const resultPerTestCase = this.#resultPerTestCase(playwrightJson);
+
+    return Array.from(resultPerTestCase).reduce(
+      (suiteMap, [testId, status]) => {
+        const suiteId = testId.split(".")[0];
+        const bucket = suiteMap.get(suiteId) ?? new Map();
+        bucket.set(testId, status);
+        suiteMap.set(suiteId, bucket);
+        return suiteMap;
+      },
+      new Map<TTestSuiteId, Map<TTestCaseId, TResultStatus>>()
+    );
+  }
+
+  #resultPerTestCase(json: any): Map<TTestCaseId, TResultStatus> {
     const statsPerTestId = new Map<
       TTestCaseId,
       { run: number; error: number; skip: number }
