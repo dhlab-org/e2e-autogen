@@ -3,6 +3,7 @@ import {
   SpreadsheetSheet,
   SpreadsheetSheetContract,
 } from "./spreadsheet-sheet";
+import { TestSuiteSheet, TestSuiteSheetContract } from "./test-suite-sheet";
 
 async function authorizedGoogleSpreadsheets(
   sheetsUrl: string,
@@ -31,6 +32,7 @@ type GoogleSpreadsheetsContract = {
   fullUrl: string;
   sheets(): Promise<TSheetsMeta>;
   sheet(gid: string): SpreadsheetSheetContract;
+  testSuiteSheet(gid: string): TestSuiteSheetContract;
 };
 
 class GoogleSpreadsheets implements GoogleSpreadsheetsContract {
@@ -85,6 +87,10 @@ class GoogleSpreadsheets implements GoogleSpreadsheetsContract {
 
   sheet(gid: string) {
     return new SpreadsheetSheet(this.id, gid, this.#v4sheets);
+  }
+
+  testSuiteSheet(gid: string) {
+    return new TestSuiteSheet(this.id, gid, this.#v4sheets);
   }
 }
 
