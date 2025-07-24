@@ -51,7 +51,15 @@ class TestRegistry implements TestRegistryContract {
         return [this.#judge.labelOf(result)];
       });
 
-      await sheet.writeAfterLastColumn(resultValues, 3); // 3행부터 대응
+      // === 헤더(1,2행) + 데이터(3행~) 합쳐서 작성 ===
+      const now = this.#formatDate(new Date());
+      const columnValues: string[][] = [
+        ["자동테스트 결과"],
+        [now],
+        ...resultValues,
+      ];
+
+      await sheet.writeAfterLastColumn(columnValues, 1);
     }
   }
 
@@ -77,6 +85,15 @@ class TestRegistry implements TestRegistryContract {
     } catch (error) {
       throw new Error(`❌ ${this.#jsonReporterPath} 파일 읽기 실패: ${error}`);
     }
+  }
+
+  #formatDate(date: Date): string {
+    const yyyy = date.getFullYear();
+    const mm = String(date.getMonth() + 1).padStart(2, "0");
+    const dd = String(date.getDate()).padStart(2, "0");
+    const hh = String(date.getHours()).padStart(2, "0");
+    const mi = String(date.getMinutes()).padStart(2, "0");
+    return `${yyyy}${mm}${dd}:${hh}:${mi}`;
   }
 }
 
