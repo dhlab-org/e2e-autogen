@@ -24,10 +24,10 @@ class TestRegistry implements TestRegistryContract {
     const resultsPerSuite = this.#judge.resultsPerSuite(json);
 
     // 2. 각 시트에 결과 기록
-    const { sheetsMetaMapByPrefix } = await googleSpreadsheets.sheets();
+    const suitesMeta = await googleSpreadsheets.suitesMeta();
 
     for (const [suiteId, resultPerTestId] of resultsPerSuite) {
-      const meta = sheetsMetaMapByPrefix.get(suiteId);
+      const meta = suitesMeta.get(suiteId);
       if (!meta) {
         console.warn(`⚠️ '[${suiteId}]' 시트를 찾지 못해 스킵합니다.`);
         continue;

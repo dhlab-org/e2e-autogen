@@ -4,6 +4,7 @@ import {
   SpreadsheetSheetContract,
 } from "./spreadsheet-sheet";
 import { TestSuiteSheet, TestSuiteSheetContract } from "./test-suite-sheet";
+import { CoverageSheet, CoverageSheetContract } from "./coverage-sheet";
 
 async function authorizedGoogleSpreadsheets(
   sheetsUrl: string,
@@ -30,9 +31,10 @@ async function authorizedGoogleSpreadsheets(
 type GoogleSpreadsheetsContract = {
   id: string;
   fullUrl: string;
-  sheets(): Promise<TSheetsMeta>;
+  suitesMeta(): Promise<Map<string, { gid: string; title: string }>>;
   sheet(gid: string): SpreadsheetSheetContract;
   testSuiteSheet(gid: string): TestSuiteSheetContract;
+  coverageSheet(): Promise<CoverageSheetContract>;
 };
 
 class GoogleSpreadsheets implements GoogleSpreadsheetsContract {
@@ -56,33 +58,24 @@ class GoogleSpreadsheets implements GoogleSpreadsheetsContract {
     return this.#sheetsUrl;
   }
 
-  async sheets() {
-    const response = await this.#v4sheets.spreadsheets.get({
-      spreadsheetId: this.id,
-    });
+  async suitesMeta() {
+    const rawSheets = await this.#rawSheets();
 
-    const rawSheets = response.data.sheets ?? [];
+    const suitesMeta = new Map<string, { gid: string; title: string }>();
 
-    const sheetsMetaMapByPrefix = new Map<
-      string,
-      { gid: string; title: string }
-    >();
     for (const sheet of rawSheets) {
       const title: string = sheet.properties?.title ?? "";
       const match = title.match(/^\s*\[(TC-\d+)]/i);
       if (match) {
         const prefix = match[1]; // e.g., TC-4
-        sheetsMetaMapByPrefix.set(prefix, {
+        suitesMeta.set(prefix, {
           gid: String(sheet.properties?.sheetId),
           title,
         });
       }
     }
 
-    return {
-      rawSheets,
-      sheetsMetaMapByPrefix,
-    };
+    return suitesMeta;
   }
 
   sheet(gid: string) {
@@ -92,11 +85,56 @@ class GoogleSpreadsheets implements GoogleSpreadsheetsContract {
   testSuiteSheet(gid: string) {
     return new TestSuiteSheet(this.id, gid, this.#v4sheets);
   }
+
+  async coverageSheet(): Promise<CoverageSheetContract> {
+    const rawSheets = await this.#rawSheets();
+    const sheetTitle = "[COVERAGE]";
+
+    const existingSheet = rawSheets.find(
+      (sheet) => sheet.properties?.title === sheetTitle
+    );
+
+    let gid: string | undefined = existingSheet?.properties?.sheetId
+      ? String(existingSheet.properties.sheetId)
+      : undefined;
+
+    if (!gid) {
+      const response = await this.#v4sheets.spreadsheets.batchUpdate({
+        spreadsheetId: this.id,
+        requestBody: {
+          requests: [
+            {
+              addSheet: {
+                properties: {
+                  title: sheetTitle,
+                },
+              },
+            },
+          ],
+        },
+      });
+
+      const newSheetProperties =
+        response.data.replies?.[0]?.addSheet?.properties;
+      if (newSheetProperties?.sheetId != null) {
+        gid = String(newSheetProperties.sheetId);
+      }
+    }
+
+    if (!gid) {
+      throw new Error("`[COVERAGE]` 시트를 찾거나 생성하는 데 실패했습니다.");
+    }
+
+    return new CoverageSheet(this.id, gid, this.#v4sheets);
+  }
+
+  async #rawSheets(): Promise<sheets_v4.Schema$Sheet[]> {
+    const response = await this.#v4sheets.spreadsheets.get({
+      spreadsheetId: this.id,
+    });
+
+    return response.data.sheets ?? [];
+  }
 }
 
 export { authorizedGoogleSpreadsheets, type GoogleSpreadsheetsContract };
-
-type TSheetsMeta = {
-  rawSheets: sheets_v4.Schema$Sheet[];
-  sheetsMetaMapByPrefix: Map<string, { gid: string; title: string }>;
-};

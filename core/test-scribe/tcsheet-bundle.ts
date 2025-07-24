@@ -13,10 +13,10 @@ class TCSheetBundle implements TCSheetBundleContract {
   }
 
   async collectedRowsMapByPrefix() {
-    const { sheetsMetaMapByPrefix } = await this.#googleSpreadsheets.sheets();
+    const suitesMeta = await this.#googleSpreadsheets.suitesMeta();
 
     const rowsMapByPrefix = new Map<TPrefix, TRow[]>();
-    for (const [prefix, { gid }] of sheetsMetaMapByPrefix) {
+    for (const [prefix, { gid }] of suitesMeta) {
       const rows = await this.#googleSpreadsheets.sheet(gid).rows();
       rowsMapByPrefix.set(prefix, rows);
     }
