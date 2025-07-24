@@ -26,13 +26,14 @@ async function authorizedGoogleSpreadsheets(
   }
 }
 
-type TGoogleSpreadsheetsContract = {
+type GoogleSpreadsheetsContract = {
   id: string;
+  fullUrl: string;
   sheets(): Promise<TSheetsMeta>;
   sheet(gid: string): SpreadsheetSheetContract;
 };
 
-class GoogleSpreadsheets implements TGoogleSpreadsheetsContract {
+class GoogleSpreadsheets implements GoogleSpreadsheetsContract {
   readonly #sheetsUrl: string;
   readonly #v4sheets: sheets_v4.Sheets;
 
@@ -47,6 +48,10 @@ class GoogleSpreadsheets implements TGoogleSpreadsheetsContract {
       throw new Error("유효하지 않은 Google Sheets URL입니다.");
     }
     return match[1];
+  }
+
+  get fullUrl() {
+    return this.#sheetsUrl;
   }
 
   async sheets() {
@@ -83,7 +88,7 @@ class GoogleSpreadsheets implements TGoogleSpreadsheetsContract {
   }
 }
 
-export { authorizedGoogleSpreadsheets, type TGoogleSpreadsheetsContract };
+export { authorizedGoogleSpreadsheets, type GoogleSpreadsheetsContract };
 
 type TSheetsMeta = {
   rawSheets: sheets_v4.Schema$Sheet[];

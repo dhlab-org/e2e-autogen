@@ -1,6 +1,7 @@
 import { sheets_v4 } from "googleapis";
 
 type SpreadsheetSheetContract = {
+  rows(): Promise<any[][]>;
   writeAfterLastColumn(
     values: readonly (readonly any[])[],
     startRow?: number
@@ -18,6 +19,16 @@ class SpreadsheetSheet implements SpreadsheetSheetContract {
     this.#spreadsheetId = spreadsheetId;
     this.#gid = gid;
     this.#sheets = sheets;
+  }
+
+  async rows() {
+    const sheetName = await this.#sheetName();
+    const res = await this.#sheets.spreadsheets.values.get({
+      spreadsheetId: this.#spreadsheetId,
+      range: `'${sheetName}'`,
+    });
+
+    return res.data.values ?? [];
   }
 
   /**
@@ -104,14 +115,7 @@ class SpreadsheetSheet implements SpreadsheetSheetContract {
    * 시트의 데이터 범위를 감지한다.
    */
   async #dataRange(): Promise<TDataRange> {
-    const sheetName = await this.#sheetName();
-
-    const res = await this.#sheets.spreadsheets.values.get({
-      spreadsheetId: this.#spreadsheetId,
-      range: `'${sheetName}'`,
-    });
-
-    const rows: any[][] = res.data.values ?? [];
+    const rows = await this.rows();
     const lastColumnNum = Math.max(1, ...rows.map((row) => row.length));
     const lastRow = rows.length;
     const lastColumnLetter = this.#numberToColumnLetter(lastColumnNum);
