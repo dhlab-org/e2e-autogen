@@ -2,18 +2,18 @@ import * as fs from "fs-extra";
 import * as path from "path";
 import { TPrefix, TScenarioData, TStepData } from "./types";
 
-type PlaywrightStubContract = {
-  generate(targetDir: string): Promise<void>;
+type PlaywrightTemplateContract = {
+  write(targetDir: string): Promise<void>;
 };
 
-class PlaywrightStub implements PlaywrightStubContract {
+class PlaywrightTemplate implements PlaywrightTemplateContract {
   readonly #scenariosMapByPrefix: Map<TPrefix, TScenarioData[]>;
 
   constructor(scenariosMapByPrefix: Map<TPrefix, TScenarioData[]>) {
     this.#scenariosMapByPrefix = scenariosMapByPrefix;
   }
 
-  async generate(targetDir: string): Promise<void> {
+  async write(targetDir: string): Promise<void> {
     try {
       await fs.ensureDir(targetDir);
 
@@ -112,4 +112,4 @@ class PlaywrightStub implements PlaywrightStubContract {
   }
 }
 
-export { PlaywrightStub };
+export { PlaywrightTemplate };

@@ -1,31 +1,5 @@
-import * as fs from "fs-extra";
-import { createScenarioCollector } from "../scenario-sheets";
-import { PlaywrightStubGenerator } from "../stub-generator";
 import { TestResultUpdater } from "../results-updater";
-import { TGenerateOptions, TUpdateOptions } from "./types";
-
-export async function generateTestCode(
-  options: TGenerateOptions
-): Promise<void> {
-  console.log(`🔗 Google Sheets URL: ${options.sheetsUrl}`);
-  console.log(`📁 출력 디렉토리: ${options.generatedStubDir}`);
-  console.log(`🔑 Service Account 키: ${options.credentialsPath}`);
-
-  try {
-    await fs.ensureDir(options.generatedStubDir);
-
-    const collector = createScenarioCollector(
-      options.sheetsUrl,
-      options.credentialsPath
-    );
-    const scenarios = await collector.collect();
-
-    const stubGenerator = new PlaywrightStubGenerator();
-    await stubGenerator.generate(scenarios, options.generatedStubDir);
-  } catch (error) {
-    throw new Error(`❌ 스텁 코드 생성 실패: ${error}`);
-  }
-}
+import { TUpdateOptions } from "./types";
 
 export async function updateTestResults(
   options: TUpdateOptions

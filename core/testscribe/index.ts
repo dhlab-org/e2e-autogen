@@ -3,13 +3,13 @@ import * as fs from "fs-extra";
 import { GoogleSpreadsheetsContract } from "../google-spreadsheets";
 import { TCSheetBundle } from "./tcsheet-bundle";
 import { Scenario } from "./scenario";
-import { PlaywrightStub } from "./playwright-stub";
+import { PlaywrightTemplate } from "./playwright-template";
 
-type StubGeneratorContract = {
-  generateForPlaywright(): Promise<void>;
+type TestScribeContract = {
+  generateStubForPlaywright(): Promise<void>;
 };
 
-class StubGenerator implements StubGeneratorContract {
+class TestScribe implements TestScribeContract {
   readonly #googleSpreadsheets: GoogleSpreadsheetsContract;
   readonly #targetDir: string;
 
@@ -21,7 +21,7 @@ class StubGenerator implements StubGeneratorContract {
     this.#targetDir = targetDir;
   }
 
-  async generateForPlaywright(): Promise<void> {
+  async generateStubForPlaywright(): Promise<void> {
     console.log(`🔗 Google Sheets URL: ${this.#googleSpreadsheets.fullUrl}`);
     console.log(`📁 출력 디렉토리: ${this.#targetDir}`);
 
@@ -39,12 +39,12 @@ class StubGenerator implements StubGeneratorContract {
       );
 
       // 3. 스텁 코드 생성
-      const playwrightStub = new PlaywrightStub(scenariosMapByPrefix);
-      await playwrightStub.generate(this.#targetDir);
+      const playwrightTemplate = new PlaywrightTemplate(scenariosMapByPrefix);
+      await playwrightTemplate.write(this.#targetDir);
     } catch (error) {
       throw new Error(`❌ Playwright 스텁 코드 생성 실패: ${error}`);
     }
   }
 }
 
-export { StubGenerator, type StubGeneratorContract };
+export { TestScribe, type TestScribeContract };

@@ -1,7 +1,7 @@
 import { match } from "ts-pattern";
 import { Command, CommandContract } from "./command";
 import { showUsage, showVersion, updateTestResults } from "./command-executors";
-import { StubGenerator } from "../stub";
+import { TestScribe } from "../testscribe";
 import { authorizedGoogleSpreadsheets } from "../google-spreadsheets";
 
 type CliApplicationContract = {
@@ -34,12 +34,12 @@ class CliApplication implements CliApplicationContract {
             options.credentialsPath
           );
 
-          const stubGenerator = new StubGenerator(
+          const testScribe = new TestScribe(
             googleSpreadsheets,
             options.generatedStubDir
           );
 
-          await stubGenerator.generateForPlaywright();
+          await testScribe.generateStubForPlaywright();
         })
         .with({ type: "SUB_COMMAND", subCommand: "UPDATE" }, async () => {
           const options = this.#command.optionsOf("UPDATE");

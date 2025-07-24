@@ -1,18 +1,4 @@
 /**
- * 컬럼 매핑 설정 (스프레드시트 컬럼 순서)
- */
-export const COLUMN_MAPPING = {
-  scenarioId: 0, // A: 시나리오 ID
-  scenario: 1, // B: e2e 시나리오
-  uiPath: 2, // C: UI path
-  when: 3, // D: action/when
-  then: 4, // E: expected/then
-  testId: 5, // F: 테스트 ID
-  tag: 6, // G: 태그
-  comment: 7, // H: 코멘트
-} as const;
-
-/**
  * 구글 시트 관련 설정
  */
 export const GOOGLE_SHEETS_CONFIG = {
