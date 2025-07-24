@@ -1,4 +1,4 @@
-import { TCSheetBundleContract } from "./tcsheet-bundle";
+import { GoogleSpreadsheetsContract } from "../google-spreadsheets";
 import { TPrefix, TRow, TScenarioData } from "./types";
 
 type ScenarioContract = {
@@ -8,10 +8,10 @@ type ScenarioContract = {
 };
 
 class Scenario implements ScenarioContract {
-  readonly #tcSheetBundle: TCSheetBundleContract;
+  readonly #sheet: ReturnType<GoogleSpreadsheetsContract["testSuiteSheet"]>;
 
-  constructor(tcSheetBundle: TCSheetBundleContract) {
-    this.#tcSheetBundle = tcSheetBundle;
+  constructor(googleSpreadsheets: GoogleSpreadsheetsContract) {
+    this.#sheet = googleSpreadsheets.testSuiteSheet("");
   }
 
   async scenariosMapByPrefix(rowsMapByPrefix: Map<TPrefix, TRow[]>) {
@@ -43,12 +43,12 @@ class Scenario implements ScenarioContract {
       .map((row) => ({
         scenarioId: this.#extractedScenarioId(row),
         scenarioDescription:
-          row[this.#tcSheetBundle.columnNumberOf("scenarioDescription")] || "",
+          row[this.#sheet.columnNumberOf("scenarioDescription")] || "",
         step: {
-          testId: row[this.#tcSheetBundle.columnNumberOf("testId")] || "",
-          uiPath: row[this.#tcSheetBundle.columnNumberOf("uiPath")] || "",
-          when: row[this.#tcSheetBundle.columnNumberOf("when")] || "",
-          then: row[this.#tcSheetBundle.columnNumberOf("then")] || "",
+          testId: row[this.#sheet.columnNumberOf("testId")] || "",
+          uiPath: row[this.#sheet.columnNumberOf("uiPath")] || "",
+          when: row[this.#sheet.columnNumberOf("when")] || "",
+          then: row[this.#sheet.columnNumberOf("then")] || "",
         },
       }))
       .filter((item) => item.scenarioId);
@@ -73,7 +73,7 @@ class Scenario implements ScenarioContract {
   }
 
   #extractedScenarioId(row: TRow): string {
-    const testId = row[this.#tcSheetBundle.columnNumberOf("testId")] || "";
+    const testId = row[this.#sheet.columnNumberOf("testId")] || "";
     if (!testId) return "";
 
     // TC-x.x.x → TC-x.x

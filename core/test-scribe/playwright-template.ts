@@ -59,7 +59,7 @@ class PlaywrightTemplate implements PlaywrightTemplateContract {
   }
 
   #stubCode(scenario: TScenarioData): string {
-    const description = this.#sanitizeText(
+    const title = this.#sanitizeText(
       `[${scenario.scenarioId}] ${scenario.scenarioDescription}`,
       true
     );
@@ -68,11 +68,9 @@ class PlaywrightTemplate implements PlaywrightTemplateContract {
       .map((step) => this.#stepCode(step))
       .join("\n\n");
 
-    return [
-      `test.skip("${description}", async ({ page }) => {`,
-      steps,
-      "});",
-    ].join("\n");
+    return [`test.skip("${title}", async ({ page }) => {`, steps, "});"].join(
+      "\n"
+    );
   }
 
   #stepCode(step: TStepData): string {

@@ -33,7 +33,7 @@ class TestScribe implements TestScribeContract {
       const rowsMapByPrefix = await tcSheetBundle.collectedRowsMapByPrefix();
 
       // 2. 데이터 구조화 -> Map<TC-x, TScenarioData[]>
-      const scenario = new Scenario(tcSheetBundle);
+      const scenario = new Scenario(this.#googleSpreadsheets);
       const scenariosMapByPrefix = await scenario.scenariosMapByPrefix(
         rowsMapByPrefix
       );
