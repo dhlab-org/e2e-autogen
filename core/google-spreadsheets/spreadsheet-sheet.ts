@@ -48,6 +48,10 @@ class SpreadsheetSheet implements SpreadsheetSheetContract {
     const { nextColumnLetter: targetColumnLetter, lastRow } =
       await this.#dataRange();
 
+    // 시트 컬럼 수가 부족하면 확장
+    const targetColumnNum = this.#columnLetterToNumber(targetColumnLetter);
+    await this.#ensureColumnExists(targetColumnNum);
+
     const sheetName = await this.#sheetName();
 
     // 시트에 이미 존재하는 데이터 행 수
@@ -150,6 +154,39 @@ class SpreadsheetSheet implements SpreadsheetSheetContract {
     }
   }
 
+  async #ensureColumnExists(columnNumber: number): Promise<void> {
+    const columnCount = await this.#columnCount();
+    if (columnCount >= columnNumber) return;
+
+    const append = {
+      appendDimension: {
+        sheetId: Number(this.#gid),
+        dimension: "COLUMNS" as const,
+        length: columnNumber - columnCount,
+      },
+    };
+
+    await this.#sheets.spreadsheets.batchUpdate({
+      spreadsheetId: this.#spreadsheetId,
+      requestBody: { requests: [append] },
+    });
+
+    console.log(`📐 시트 컬럼 확장: ${columnCount} → ${columnNumber}`);
+  }
+
+  async #columnCount(): Promise<number> {
+    const response = await this.#sheets.spreadsheets.get({
+      spreadsheetId: this.#spreadsheetId,
+      includeGridData: false,
+    });
+
+    const targetSheet = response.data.sheets?.find(
+      (sheet) => String(sheet.properties?.sheetId) === this.#gid
+    );
+
+    return targetSheet?.properties?.gridProperties?.columnCount ?? 0;
+  }
+
   #numberToColumnLetter(num: number): string {
     if (num <= 0) return "";
 
@@ -158,6 +195,14 @@ class SpreadsheetSheet implements SpreadsheetSheetContract {
     const remaining = Math.floor(adjusted / 26);
 
     return remaining > 0 ? this.#numberToColumnLetter(remaining) + char : char;
+  }
+
+  #columnLetterToNumber(columnLetter: string): number {
+    let result = 0;
+    for (let i = 0; i < columnLetter.length; i++) {
+      result = result * 26 + (columnLetter.charCodeAt(i) - 64);
+    }
+    return result;
   }
 }
 
