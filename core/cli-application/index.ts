@@ -1,11 +1,8 @@
 import { match } from "ts-pattern";
 import { Command, CommandContract } from "./command";
-import {
-  generateTestCode,
-  showUsage,
-  showVersion,
-  updateTestResults,
-} from "./command-executors";
+import { showUsage, showVersion, updateTestResults } from "./command-executors";
+import { StubGenerator } from "../stub";
+import { authorizedGoogleSpreadsheets } from "../google-spreadsheets";
 
 type CliApplicationContract = {
   run(): Promise<void>;
@@ -31,7 +28,18 @@ class CliApplication implements CliApplicationContract {
         })
         .with({ type: "SUB_COMMAND", subCommand: "GENERATE" }, async () => {
           const options = this.#command.optionsOf("GENERATE");
-          await generateTestCode(options);
+
+          const googleSpreadsheets = await authorizedGoogleSpreadsheets(
+            options.sheetsUrl,
+            options.credentialsPath
+          );
+
+          const stubGenerator = new StubGenerator(
+            googleSpreadsheets,
+            options.generatedStubDir
+          );
+
+          await stubGenerator.generateForPlaywright();
         })
         .with({ type: "SUB_COMMAND", subCommand: "UPDATE" }, async () => {
           const options = this.#command.optionsOf("UPDATE");

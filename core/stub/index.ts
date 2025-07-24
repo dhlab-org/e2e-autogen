@@ -2,6 +2,7 @@ import * as fs from "fs-extra";
 
 import { GoogleSpreadsheetsContract } from "../google-spreadsheets";
 import { TCSheetBundle } from "./tcsheet-bundle";
+import { Scenario } from "./scenario";
 
 type StubGeneratorContract = {
   generateForPlaywright(): Promise<void>;
@@ -26,12 +27,18 @@ class StubGenerator implements StubGeneratorContract {
     try {
       await fs.ensureDir(this.#targetDir);
 
-      // 1. 시트에서 데이터 수집: TCSheetBundle
-      const rowsMapByPrefix = await new TCSheetBundle(
-        this.#googleSpreadsheets
-      ).collectedRowsMapByPrefix();
+      const tcSheetBundle = new TCSheetBundle(this.#googleSpreadsheets);
+      const scenario = new Scenario(tcSheetBundle);
 
-      // 2. 데이터 구조화: ScenarioConverter -> Map<TC-x, TScenarioData[]>
+      // 1. 시트에서 데이터 수집 -> Map<TC-x, TRow[]>
+      const rowsMapByPrefix = await tcSheetBundle.collectedRowsMapByPrefix();
+
+      // 2. 데이터 구조화 -> Map<TC-x, TScenarioData[]>
+      const scenariosMapByPrefix = await scenario.scenariosMapByPrefix(
+        rowsMapByPrefix
+      );
+
+      console.log(">>", scenariosMapByPrefix);
 
       // 3. 스텁 코드 생성: PlaywrightStubGenerator
       /// 3.1. TC-x.spec.ts 생성

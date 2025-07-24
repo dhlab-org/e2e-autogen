@@ -1,6 +1,6 @@
 export type TScenarioData = {
   scenarioId: string;
-  scenario: string;
+  scenarioDescription: string;
   steps: TStepData[];
 };
 
@@ -10,3 +10,6 @@ export type TStepData = {
   when: string;
   then: string;
 };
+
+export type TPrefix = string; // TC-x
+export type TRow = any[];
