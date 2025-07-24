@@ -8,7 +8,7 @@ Google 스프레드시트 기반 시나리오를 Playwright 테스트 **스텁 �
 - 🔍 **멀티 시트 자동 처리**: `[TC-x]` 시트를 자동 감지하여 한 번에 변환합니다
 - 🧪 **Playwright 스텁 생성**: 시나리오 기반 테스트 코드 틀을 즉시 생성합니다
 - 🚀 **간편 CLI**: 한 줄 명령으로 손쉽게 실행할 수 있습니다
-- 📝 **결과 자동 업데이트**: 테스트 실행 결과를 Google Sheets에 자동으로 업데이트 (TBD)
+- 📝 **결과 자동 업데이트**: 테스트 실행 결과를 Google Sheets에 자동으로 업데이트
 
 > 💡 **스텁 코드(Stub Code)란?**  
 > 실제 구현 로직은 없지만 기본 구조와 가이드 주석이 포함된 코드 틀입니다.  
@@ -16,25 +16,9 @@ Google 스프레드시트 기반 시나리오를 Playwright 테스트 **스텁 �
 
 ## 📦 설치
 
-> [!IMPORTANT]  
-> 현재 npm 배포 전 단계이므로, 로컬에서 직접 빌드하여 사용해야 합니다.
-
 ```bash
-# 1. 저장소 클론
-git clone https://github.com/dhlab-org/e2e-autogen.git
-cd e2e-autogen
-
-# 2. 의존성 설치
-yarn install
-
-# 3. 프로젝트 빌드
-yarn build
-
-# 4. 전역 링크 생성
-npm link
+npm install @dhlab/e2e-autogen
 ```
-
-> **💡 팁**: `npm link` 실행 후 터미널 어디서든 `e2e-autogen` 명령어를 사용할 수 있습니다.
 
 ### 🔍 설치 확인
 
@@ -99,9 +83,6 @@ mkdir -p playwright/.auth
 # 스프레드시트 전체에서 [TC-x] 시트 자동 처리 (추천)
 e2e-autogen https://docs.google.com/spreadsheets/d/[SPREADSHEET_ID]/edit
 
-# 특정 시트(gid)만 처리
-e2e-autogen https://docs.google.com/spreadsheets/d/[SPREADSHEET_ID]/edit#gid=[GID]
-
 # 출력 디렉토리 지정
 e2e-autogen https://docs.google.com/spreadsheets/d/[SPREADSHEET_ID]/edit --output ./playwright/__generated-stub__
 
@@ -128,7 +109,7 @@ package.json에 스크립트를 추가하여 사용할 수 있습니다:
 ```json
 {
   "scripts": {
-    "generate-e2e": "e2e-autogen https://docs.google.com/spreadsheets/d/[SPREADSHEET_ID]/edit#gid=[GID] --output ./playwright/__generated-stub__"
+    "generate-e2e": "e2e-autogen https://docs.google.com/spreadsheets/d/[SPREADSHEET_ID]/edit --output ./playwright/__generated-stub__"
   }
 }
 ```
@@ -175,7 +156,7 @@ test("[TC-1.1] 질문 입력", async ({ page }) => {
 > - 각 테스트 케이스는 여러 스텝으로 구성됩니다
 > - 실제 구현 로직은 포함되지 않으며, 개발자가 직접 추가해야 합니다 (playwright test generator를 활용하면 빠르게 작성 가능합니다.)
 > - Given/When/Then 패턴을 따르는 BDD 스타일 주석이 포함됩니다
-> - 테스트 실행 후 결과가 자동으로 Google Sheets에 업데이트됩니다 (향후 기능)
+> - 테스트 실행 후 결과가 자동으로 Google Sheets에 업데이트됩니다
 
 ## 📁 생성된 파일 구조
 
@@ -190,9 +171,8 @@ test("[TC-1.1] 질문 입력", async ({ page }) => {
 
 **📍 결과 기록 방식**
 
-- **위치**: 기존 컬럼(A~H) 다음에 결과 컬럼들이 자동으로 추가됩니다
+- **위치**: 마지막 컬럼 다음에 자동으로 추가됩니다
 - **구조**: 결과 + 실행 날짜/시간 컬럼으로 구성됩니다
-- **색상 구분**: 결과에 따라 자동으로 색상이 적용됩니다
 - **드롭다운**: 결과 컬럼에는 선택 가능한 드롭다운 메뉴가 제공됩니다
 
 **🎯 지원 결과 유형**
@@ -205,7 +185,7 @@ test("[TC-1.1] 질문 입력", async ({ page }) => {
 
 **⚡ 자동화 기능**
 
-- **실시간 업데이트**: Playwright 테스트 실행 후 결과가 즉시 시트에 반영
+- **시트 업데이트**: Playwright 테스트 실행 후 결과가 시트에 반영
 - **이력 관리**: 실행 날짜와 시간을 `YYYYMMDD:HH:mm` 형식으로 기록
 - **시트별 처리**: `[TC-x]` 패턴의 시트를 자동 감지하여 각각 업데이트
 - **결과 통계**: 테스트 ID별로 성공/실패 횟수를 집계하여 상태 결정
@@ -215,7 +195,7 @@ test("[TC-1.1] 질문 입력", async ({ page }) => {
 ```bash
 # 테스트 결과 업데이트
 e2e-autogen update --sheets "https://docs.google.com/..." \
-                   --results ./playwright/reporters/results.json
+                   --reporter ./playwright/reporters/results.json
 ```
 
 > **💡 주의사항**
