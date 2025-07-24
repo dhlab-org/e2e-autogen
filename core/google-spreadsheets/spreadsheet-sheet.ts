@@ -1,6 +1,7 @@
 import { sheets_v4 } from "googleapis";
 
 type SpreadsheetSheetContract = {
+  gid: string;
   rows(): Promise<any[][]>;
   writeAfterLastColumn(
     values: readonly (readonly any[])[],
@@ -19,6 +20,10 @@ class SpreadsheetSheet implements SpreadsheetSheetContract {
     this.#spreadsheetId = spreadsheetId;
     this.#gid = gid;
     this.#sheets = sheets;
+  }
+
+  get gid() {
+    return this.#gid;
   }
 
   async rows() {
