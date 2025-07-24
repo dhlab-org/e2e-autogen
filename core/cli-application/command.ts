@@ -1,4 +1,4 @@
-import { DEFAULT_DIRECTORIES } from "../types";
+import { DEFAULT_DIRECTORIES } from "../config";
 import { match } from "ts-pattern";
 import { TFlag, TGenerateOptions, TSubCommand, TUpdateOptions } from "./types";
 
