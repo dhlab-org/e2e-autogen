@@ -15,13 +15,8 @@ class TestCoverage implements TestCoverageContract {
 
   async update(googleSpreadsheets: GoogleSpreadsheetsContract) {
     const coverageSheet = await googleSpreadsheets.coverageSheet();
-    const { summary, summaryPerSuite, summaryPerExecution } = this.results();
 
-    console.log("summary", summary);
-    console.log("summaryPerSuite", summaryPerSuite);
-    console.log("summaryPerExecution", summaryPerExecution);
-
-    // await coverageSheet.update(summary, summaryPerSuite, summaryPerExecution);
+    await coverageSheet.updateCoverage(this.results());
   }
 
   results(): TTestCoverageResults {
@@ -152,7 +147,13 @@ class TestCoverage implements TestCoverageContract {
   }
 
   #lastUpdatedAt(): string {
-    return new Date().toISOString();
+    const date = new Date();
+    const yyyy = date.getFullYear();
+    const mm = String(date.getMonth() + 1).padStart(2, "0");
+    const dd = String(date.getDate()).padStart(2, "0");
+    const hh = String(date.getHours()).padStart(2, "0");
+    const mi = String(date.getMinutes()).padStart(2, "0");
+    return `${yyyy}${mm}${dd}:${hh}:${mi}`;
   }
 
   #emptyStatusCount(): TStatusCount {
@@ -173,6 +174,12 @@ class TestCoverage implements TestCoverageContract {
 }
 
 export { TestCoverage };
+export type {
+  TTestCoverageResults,
+  TOverallSummary,
+  TSuiteSummary,
+  TExecutionSummary,
+};
 
 type TTestSuiteId = string;
 type TTestCaseId = string;

@@ -6,14 +6,14 @@ type SpreadsheetSheetContract = {
 };
 
 class SpreadsheetSheet implements SpreadsheetSheetContract {
-  readonly #spreadsheetId: string;
+  protected readonly spreadsheetId: string;
   readonly #gid: string;
-  readonly #sheets: sheets_v4.Sheets;
+  protected readonly sheets: sheets_v4.Sheets;
 
   constructor(spreadsheetId: string, gid: string, sheets: sheets_v4.Sheets) {
-    this.#spreadsheetId = spreadsheetId;
+    this.spreadsheetId = spreadsheetId;
     this.#gid = gid;
-    this.#sheets = sheets;
+    this.sheets = sheets;
   }
 
   get gid() {
@@ -21,9 +21,9 @@ class SpreadsheetSheet implements SpreadsheetSheetContract {
   }
 
   async rows() {
-    const sheetName = await this.#sheetName();
-    const res = await this.#sheets.spreadsheets.values.get({
-      spreadsheetId: this.#spreadsheetId,
+    const sheetName = await this.sheetName();
+    const res = await this.sheets.spreadsheets.values.get({
+      spreadsheetId: this.spreadsheetId,
       range: `'${sheetName}'`,
     });
 
@@ -51,7 +51,7 @@ class SpreadsheetSheet implements SpreadsheetSheetContract {
     const targetColumnNum = this.#columnLetterToNumber(targetColumnLetter);
     await this.#ensureColumnExists(targetColumnNum);
 
-    const sheetName = await this.#sheetName();
+    const sheetName = await this.sheetName();
 
     // 시트에 이미 존재하는 데이터 행 수
     const existingDataRows = Math.max(0, lastRow - (startRow - 1));
@@ -64,8 +64,8 @@ class SpreadsheetSheet implements SpreadsheetSheetContract {
     const endRow = startRow + padded.length - 1;
     const range = `'${sheetName}'!${targetColumnLetter}${startRow}:${targetColumnLetter}${endRow}`;
 
-    await this.#sheets.spreadsheets.values.update({
-      spreadsheetId: this.#spreadsheetId,
+    await this.sheets.spreadsheets.values.update({
+      spreadsheetId: this.spreadsheetId,
       range,
       valueInputOption: "RAW",
       requestBody: { values: padded },
@@ -86,7 +86,7 @@ class SpreadsheetSheet implements SpreadsheetSheetContract {
       return;
     }
 
-    const sheetName = await this.#sheetName();
+    const sheetName = await this.sheetName();
     const { lastRow } = await this.#dataRange();
 
     const startRow = lastRow + 1;
@@ -97,14 +97,12 @@ class SpreadsheetSheet implements SpreadsheetSheetContract {
       startRow + values.length - 1
     }`;
 
-    await this.#sheets.spreadsheets.values.update({
-      spreadsheetId: this.#spreadsheetId,
+    await this.sheets.spreadsheets.values.update({
+      spreadsheetId: this.spreadsheetId,
       range,
       valueInputOption: "RAW",
       requestBody: { values: values as any[][] },
     });
-
-    console.log(`✅ ${values.length} rows appended → ${range}`);
   }
 
   protected async applyStyle(
@@ -112,8 +110,8 @@ class SpreadsheetSheet implements SpreadsheetSheetContract {
   ): Promise<void> {
     if (!requests || requests.length === 0) return;
 
-    await this.#sheets.spreadsheets.batchUpdate({
-      spreadsheetId: this.#spreadsheetId,
+    await this.sheets.spreadsheets.batchUpdate({
+      spreadsheetId: this.spreadsheetId,
       requestBody: { requests },
     });
   }
@@ -138,10 +136,10 @@ class SpreadsheetSheet implements SpreadsheetSheetContract {
   /**
    * gid를 이용해 시트 이름을 조회한다.
    */
-  async #sheetName(): Promise<string> {
+  protected async sheetName(): Promise<string> {
     try {
-      const response = await this.#sheets.spreadsheets.get({
-        spreadsheetId: this.#spreadsheetId,
+      const response = await this.sheets.spreadsheets.get({
+        spreadsheetId: this.spreadsheetId,
       });
 
       const targetSheet = response.data.sheets?.find(
@@ -169,8 +167,8 @@ class SpreadsheetSheet implements SpreadsheetSheetContract {
       },
     };
 
-    await this.#sheets.spreadsheets.batchUpdate({
-      spreadsheetId: this.#spreadsheetId,
+    await this.sheets.spreadsheets.batchUpdate({
+      spreadsheetId: this.spreadsheetId,
       requestBody: { requests: [append] },
     });
 
@@ -178,8 +176,8 @@ class SpreadsheetSheet implements SpreadsheetSheetContract {
   }
 
   async #columnCount(): Promise<number> {
-    const response = await this.#sheets.spreadsheets.get({
-      spreadsheetId: this.#spreadsheetId,
+    const response = await this.sheets.spreadsheets.get({
+      spreadsheetId: this.spreadsheetId,
       includeGridData: false,
     });
 
