@@ -2,7 +2,7 @@ import { GoogleSpreadsheetsContract } from "../google-spreadsheets";
 import { TPrefix, TRow } from "./types";
 
 type TCSheetBundleContract = {
-  collectedRowsMapByPrefix(): Promise<Map<TPrefix, TRow[]>>;
+  rowsPerPrefix(): Promise<Map<TPrefix, TRow[]>>;
 };
 
 class TCSheetBundle implements TCSheetBundleContract {
@@ -12,16 +12,16 @@ class TCSheetBundle implements TCSheetBundleContract {
     this.#googleSpreadsheets = googleSpreadsheets;
   }
 
-  async collectedRowsMapByPrefix() {
+  async rowsPerPrefix() {
     const suitesMeta = await this.#googleSpreadsheets.suitesMeta();
 
-    const rowsMapByPrefix = new Map<TPrefix, TRow[]>();
+    const rowsPerPrefix = new Map<TPrefix, TRow[]>();
     for (const [prefix, { gid }] of suitesMeta) {
       const rows = await this.#googleSpreadsheets.sheet(gid).rows();
-      rowsMapByPrefix.set(prefix, rows);
+      rowsPerPrefix.set(prefix, rows);
     }
 
-    return rowsMapByPrefix;
+    return rowsPerPrefix;
   }
 }
 

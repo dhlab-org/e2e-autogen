@@ -30,16 +30,16 @@ class TestScribe implements TestScribeContract {
 
       // 1. 시트에서 데이터 수집 -> Map<TC-x, TRow[]>
       const tcSheetBundle = new TCSheetBundle(this.#googleSpreadsheets);
-      const rowsMapByPrefix = await tcSheetBundle.collectedRowsMapByPrefix();
+      const rowsPerPrefix = await tcSheetBundle.rowsPerPrefix();
 
       // 2. 데이터 구조화 -> Map<TC-x, TScenarioData[]>
       const scenario = new Scenario(this.#googleSpreadsheets);
-      const scenariosMapByPrefix = await scenario.scenariosMapByPrefix(
-        rowsMapByPrefix
+      const scenariosPerPrefix = await scenario.scenariosPerPrefix(
+        rowsPerPrefix
       );
 
       // 3. 스텁 코드 생성
-      const playwrightTemplate = new PlaywrightTemplate(scenariosMapByPrefix);
+      const playwrightTemplate = new PlaywrightTemplate(scenariosPerPrefix);
       await playwrightTemplate.write(this.#targetDir);
     } catch (error) {
       throw new Error(`❌ Playwright 스텁 코드 생성 실패: ${error}`);

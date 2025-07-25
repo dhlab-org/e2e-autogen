@@ -2,8 +2,8 @@ import { GoogleSpreadsheetsContract } from "../google-spreadsheets";
 import { TPrefix, TRow, TScenarioData } from "./types";
 
 type ScenarioContract = {
-  scenariosMapByPrefix(
-    rowsMapByPrefix: Map<TPrefix, TRow[]>
+  scenariosPerPrefix(
+    rowsPerPrefix: Map<TPrefix, TRow[]>
   ): Promise<Map<TPrefix, TScenarioData[]>>;
 };
 
@@ -14,25 +14,25 @@ class Scenario implements ScenarioContract {
     this.#sheet = googleSpreadsheets.testSuiteSheet("");
   }
 
-  async scenariosMapByPrefix(rowsMapByPrefix: Map<TPrefix, TRow[]>) {
-    const scenariosMapByPrefix = new Map<TPrefix, TScenarioData[]>();
+  async scenariosPerPrefix(rowsPerPrefix: Map<TPrefix, TRow[]>) {
+    const scenariosPerPrefix = new Map<TPrefix, TScenarioData[]>();
 
-    for (const [prefix, rows] of rowsMapByPrefix) {
+    for (const [prefix, rows] of rowsPerPrefix) {
       const scenarios = await this.#scenarios(rows);
       if (scenarios.length === 0) continue;
 
-      scenariosMapByPrefix.set(prefix, scenarios);
+      scenariosPerPrefix.set(prefix, scenarios);
     }
 
     console.log(`\n✅ 성공적으로 변환완료`);
     console.log(
-      `📊 총 ${Array.from(scenariosMapByPrefix.values()).reduce(
+      `📊 총 ${Array.from(scenariosPerPrefix.values()).reduce(
         (acc, curr) => acc + curr.length,
         0
       )}개의 시나리오가 변환되었습니다.`
     );
 
-    return scenariosMapByPrefix;
+    return scenariosPerPrefix;
   }
 
   async #scenarios(rows: TRow[]): Promise<TScenarioData[]> {

@@ -7,10 +7,10 @@ type PlaywrightTemplateContract = {
 };
 
 class PlaywrightTemplate implements PlaywrightTemplateContract {
-  readonly #scenariosMapByPrefix: Map<TPrefix, TScenarioData[]>;
+  readonly #scenariosPerPrefix: Map<TPrefix, TScenarioData[]>;
 
-  constructor(scenariosMapByPrefix: Map<TPrefix, TScenarioData[]>) {
-    this.#scenariosMapByPrefix = scenariosMapByPrefix;
+  constructor(scenariosPerPrefix: Map<TPrefix, TScenarioData[]>) {
+    this.#scenariosPerPrefix = scenariosPerPrefix;
   }
 
   async write(targetDir: string): Promise<void> {
@@ -18,7 +18,7 @@ class PlaywrightTemplate implements PlaywrightTemplateContract {
       await fs.ensureDir(targetDir);
 
       await Promise.all(
-        Array.from(this.#scenariosMapByPrefix.entries()).map(
+        Array.from(this.#scenariosPerPrefix.entries()).map(
           ([prefix, scenarios]) =>
             this.#generateStubFile(prefix, scenarios, targetDir)
         )
