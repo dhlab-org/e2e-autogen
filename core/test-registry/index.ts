@@ -103,11 +103,23 @@ class TestRegistry implements TestRegistryContract {
       [now],
       ...resultValues,
     ];
-    await sheet.writeAfterLastColumn(columnValues, 1);
 
-    // (3) 서식 & 드롭다운 설정
+    const statuses: TResultStatus[] = [
+      "pass",
+      "fail",
+      "flaky",
+      "not_executed",
+      "manual_only",
+    ];
+    const statusLabels = statuses.map((s) => this.#judge.labelOf(s));
+
     const colIdx = this.#resultColumnIndex(rows[0] ?? []);
-    await this.#applyHeaderAndValidation(sheet, rows.length, colIdx);
+    await sheet.appendResultColumn(
+      columnValues,
+      statusLabels,
+      rows.length,
+      colIdx
+    );
   }
 
   /** 결과 컬럼 인덱스(0-base) 계산 */
@@ -118,66 +130,6 @@ class TestRegistry implements TestRegistryContract {
       if (cell && cell.toString().trim() !== "") lastIdx = i;
     }
     return lastIdx + 1;
-  }
-
-  /** 헤더 서식 적용 & 드롭다운 설정 */
-  async #applyHeaderAndValidation(
-    sheet: ReturnType<GoogleSpreadsheetsContract["testSuiteSheet"]>,
-    totalRows: number,
-    colIdx: number
-  ) {
-    const statuses: TResultStatus[] = [
-      "pass",
-      "fail",
-      "flaky",
-      "not_executed",
-      "manual_only",
-    ];
-    const statusLabels = statuses.map((s) => this.#judge.labelOf(s));
-
-    const requests: any[] = [
-      {
-        repeatCell: {
-          range: {
-            sheetId: sheet.gid,
-            startRowIndex: 0,
-            endRowIndex: 2,
-            startColumnIndex: colIdx,
-            endColumnIndex: colIdx + 1,
-          },
-          cell: {
-            userEnteredFormat: {
-              backgroundColor: { red: 0.85, green: 0.92, blue: 0.98 },
-              horizontalAlignment: "CENTER",
-              textFormat: { bold: true },
-            },
-          },
-          fields:
-            "userEnteredFormat(backgroundColor,horizontalAlignment,textFormat.bold)",
-        },
-      },
-      {
-        setDataValidation: {
-          range: {
-            sheetId: sheet.gid,
-            startRowIndex: 2,
-            endRowIndex: totalRows,
-            startColumnIndex: colIdx,
-            endColumnIndex: colIdx + 1,
-          },
-          rule: {
-            condition: {
-              type: "ONE_OF_LIST",
-              values: statusLabels.map((v) => ({ userEnteredValue: v })),
-            },
-            strict: true,
-            showCustomUi: true,
-          },
-        },
-      },
-    ];
-
-    await sheet.applyStyle(requests);
   }
 
   async #json() {

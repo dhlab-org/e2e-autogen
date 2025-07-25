@@ -3,12 +3,6 @@ import { sheets_v4 } from "googleapis";
 type SpreadsheetSheetContract = {
   gid: string;
   rows(): Promise<any[][]>;
-  writeAfterLastColumn(
-    values: readonly (readonly any[])[],
-    startRow?: number
-  ): Promise<void>;
-  writeAfterLastRow(values: readonly (readonly any[])[]): Promise<void>;
-  applyStyle(requests: sheets_v4.Schema$Request[]): Promise<void>;
 };
 
 class SpreadsheetSheet implements SpreadsheetSheetContract {
@@ -41,7 +35,7 @@ class SpreadsheetSheet implements SpreadsheetSheetContract {
    * @param values 추가할 데이터
    * @param startRow 데이터가 시작되는 row (default: 1)
    */
-  async writeAfterLastColumn(
+  protected async writeAfterLastColumn(
     values: readonly (readonly any[])[],
     startRow: number = 1
   ): Promise<void> {
@@ -84,7 +78,9 @@ class SpreadsheetSheet implements SpreadsheetSheetContract {
    * values 를 마지막 행 다음(A열 기준) 에 가로 방향으로 추가한다.
    * @param values 추가할 데이터
    */
-  async writeAfterLastRow(values: readonly (readonly any[])[]): Promise<void> {
+  protected async writeAfterLastRow(
+    values: readonly (readonly any[])[]
+  ): Promise<void> {
     if (values.length === 0) {
       console.warn("⚠️  작성할 데이터가 없습니다. writeAfterLastRow 스킵");
       return;
@@ -111,7 +107,9 @@ class SpreadsheetSheet implements SpreadsheetSheetContract {
     console.log(`✅ ${values.length} rows appended → ${range}`);
   }
 
-  async applyStyle(requests: sheets_v4.Schema$Request[]): Promise<void> {
+  protected async applyStyle(
+    requests: sheets_v4.Schema$Request[]
+  ): Promise<void> {
     if (!requests || requests.length === 0) return;
 
     await this.#sheets.spreadsheets.batchUpdate({
