@@ -4,6 +4,7 @@ import { TestRegistry } from "../test-registry";
 import { TestScribe } from "../test-scribe";
 import { Command, CommandContract } from "./command";
 import { version } from "../../package.json";
+import { TestCoverage } from "../test-coverage";
 
 type CliApplicationContract = {
   run(): Promise<void>;
@@ -105,7 +106,11 @@ class CliApplication implements CliApplicationContract {
     );
 
     const testRegistry = new TestRegistry(jsonReporterPath);
-    await testRegistry.logResults(googleSpreadsheets);
+    const resultsPerSuite = await testRegistry.resultsPerSuite();
+    await testRegistry.logResults(resultsPerSuite, googleSpreadsheets);
+
+    const testCoverage = new TestCoverage(resultsPerSuite);
+    await testCoverage.update(googleSpreadsheets);
   }
 }
 

@@ -1,10 +1,17 @@
 import * as fs from "fs-extra";
 import { GoogleSpreadsheetsContract } from "../google-spreadsheets";
 import { Judge } from "./judge";
-import { TResultStatus } from "./types";
+import { TTestCaseId, TTestSuiteId } from "./types";
+import { TResultStatus } from "../config";
 
 type TestRegistryContract = {
-  logResults(googleSpreadsheets: GoogleSpreadsheetsContract): Promise<void>;
+  logResults(
+    resultsPerSuite: Map<TTestSuiteId, Map<TTestCaseId, TResultStatus>>,
+    googleSpreadsheets: GoogleSpreadsheetsContract
+  ): Promise<void>;
+  resultsPerSuite(): Promise<
+    Map<TTestSuiteId, Map<TTestCaseId, TResultStatus>>
+  >;
 };
 
 class TestRegistry implements TestRegistryContract {
@@ -17,13 +24,9 @@ class TestRegistry implements TestRegistryContract {
   }
 
   async logResults(
+    resultsPerSuite: Map<TTestSuiteId, Map<TTestCaseId, TResultStatus>>,
     googleSpreadsheets: GoogleSpreadsheetsContract
   ): Promise<void> {
-    // 1. 테스트 결과 채점
-    const json = await this.#json();
-    const resultsPerSuite = this.#judge.resultsPerSuite(json);
-
-    // 2. 각 시트에 결과 기록
     const suitesMeta = await googleSpreadsheets.suitesMeta();
 
     for (const [suiteId, resultPerTestId] of resultsPerSuite) {
@@ -36,6 +39,11 @@ class TestRegistry implements TestRegistryContract {
       const sheet = googleSpreadsheets.testSuiteSheet(meta.gid);
       await this.#writeSuiteResults(sheet, resultPerTestId);
     }
+  }
+
+  async resultsPerSuite() {
+    const json = await this.#json();
+    return this.#judge.resultsPerSuite(json);
   }
 
   /** 시트 한 개에 대한 결과 기록 전체 프로세스 */
