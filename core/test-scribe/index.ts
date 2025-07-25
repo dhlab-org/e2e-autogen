@@ -8,7 +8,7 @@ import { DetoxTemplate } from "./detox-template";
 import { match } from "ts-pattern";
 
 type TestScribeContract = {
-  generateStubFor(testingLibrary: "playwright" | "detox"): Promise<void>;
+  generateStubFor(library: "playwright" | "detox"): Promise<void>;
 };
 
 class TestScribe implements TestScribeContract {
@@ -23,7 +23,7 @@ class TestScribe implements TestScribeContract {
     this.#targetDir = targetDir;
   }
 
-  async generateStubFor(testingLibrary: "playwright" | "detox"): Promise<void> {
+  async generateStubFor(library: "playwright" | "detox"): Promise<void> {
     console.log(`🔗 Google Sheets URL: ${this.#googleSpreadsheets.fullUrl}`);
     console.log(`📁 출력 디렉토리: ${this.#targetDir}`);
 
@@ -41,7 +41,7 @@ class TestScribe implements TestScribeContract {
       );
 
       // 3. 스텁 코드 생성
-      match(testingLibrary)
+      match(library)
         .with("playwright", async () => {
           const template = new PlaywrightTemplate(scenariosPerPrefix);
           await template.write(this.#targetDir);

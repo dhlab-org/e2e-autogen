@@ -8,7 +8,7 @@ type TDefaultOptions = {
 
 export type TGenerateOptions = TDefaultOptions & {
   generatedStubDir: string;
-  testingLibrary: "playwright" | "detox";
+  library: "playwright" | "detox";
 };
 
 export type TUpdateOptions = TDefaultOptions & {
