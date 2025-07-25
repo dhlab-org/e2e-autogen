@@ -131,8 +131,7 @@ class Command implements CommandContract {
 
     if (libraryIndex !== -1) {
       return (this.#args[libraryIndex + 1] || "playwright") as
-        | TGenerateOptions["library"]
-        | "detox";
+        | TGenerateOptions["library"];
     }
 
     return "playwright";
