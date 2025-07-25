@@ -4,9 +4,11 @@ import { GoogleSpreadsheetsContract } from "../google-spreadsheets";
 import { TCSheetBundle } from "./tcsheet-bundle";
 import { Scenario } from "./scenario";
 import { PlaywrightTemplate } from "./playwright-template";
+import { DetoxTemplate } from "./detox-template";
+import { match } from "ts-pattern";
 
 type TestScribeContract = {
-  generateStubForPlaywright(): Promise<void>;
+  generateStubFor(testingLibrary: "playwright" | "detox"): Promise<void>;
 };
 
 class TestScribe implements TestScribeContract {
@@ -21,7 +23,7 @@ class TestScribe implements TestScribeContract {
     this.#targetDir = targetDir;
   }
 
-  async generateStubForPlaywright(): Promise<void> {
+  async generateStubFor(testingLibrary: "playwright" | "detox"): Promise<void> {
     console.log(`🔗 Google Sheets URL: ${this.#googleSpreadsheets.fullUrl}`);
     console.log(`📁 출력 디렉토리: ${this.#targetDir}`);
 
@@ -39,8 +41,16 @@ class TestScribe implements TestScribeContract {
       );
 
       // 3. 스텁 코드 생성
-      const playwrightTemplate = new PlaywrightTemplate(scenariosPerPrefix);
-      await playwrightTemplate.write(this.#targetDir);
+      match(testingLibrary)
+        .with("playwright", async () => {
+          const template = new PlaywrightTemplate(scenariosPerPrefix);
+          await template.write(this.#targetDir);
+        })
+        .with("detox", async () => {
+          const template = new DetoxTemplate(scenariosPerPrefix);
+          await template.write(this.#targetDir);
+        })
+        .exhaustive();
     } catch (error) {
       throw new Error(`❌ Playwright 스텁 코드 생성 실패: ${error}`);
     }
