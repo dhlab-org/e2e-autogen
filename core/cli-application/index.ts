@@ -83,7 +83,7 @@ class CliApplication implements CliApplicationContract {
   }
 
   async #generateStub() {
-    const { sheetsUrl, credentialsPath, generatedStubDir, library } =
+    const { sheetsUrl, credentialsPath, generatedStubDir, framework } =
       this.#command.optionsOf("GENERATE");
 
     const googleSpreadsheets = await authorizedGoogleSpreadsheets(
@@ -92,7 +92,7 @@ class CliApplication implements CliApplicationContract {
     );
 
     const testScribe = new TestScribe(googleSpreadsheets, generatedStubDir);
-    await testScribe.generateStubFor(library);
+    await testScribe.generateStubFor(framework);
   }
 
   async #logResults() {
