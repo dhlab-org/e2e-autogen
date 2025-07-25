@@ -105,9 +105,9 @@ class CliApplication implements CliApplicationContract {
       credentialsPath
     );
 
-    const testRegistry = new TestRegistry(jsonReporterPath);
+    const testRegistry = new TestRegistry(jsonReporterPath, googleSpreadsheets);
     const resultsPerSuite = await testRegistry.resultsPerSuite();
-    await testRegistry.logResults(resultsPerSuite, googleSpreadsheets);
+    await testRegistry.logResults(resultsPerSuite);
 
     const testCoverage = new TestCoverage(resultsPerSuite);
     await testCoverage.update(googleSpreadsheets);

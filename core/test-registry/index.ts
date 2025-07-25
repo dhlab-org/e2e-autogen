@@ -9,25 +9,29 @@ type TestRegistryContract = {
     resultsPerSuite: Map<TTestSuiteId, Map<TTestCaseId, TResultStatus>>,
     googleSpreadsheets: GoogleSpreadsheetsContract
   ): Promise<void>;
-  resultsPerSuite(): Promise<
-    Map<TTestSuiteId, Map<TTestCaseId, TResultStatus>>
-  >;
+  resultsPerSuite(
+    googleSpreadsheets?: GoogleSpreadsheetsContract
+  ): Promise<Map<TTestSuiteId, Map<TTestCaseId, TResultStatus>>>;
 };
 
 class TestRegistry implements TestRegistryContract {
   readonly #jsonReporterPath: string;
   readonly #judge: Judge;
+  readonly #googleSpreadsheets: GoogleSpreadsheetsContract;
 
-  constructor(jsonReporterPath: string) {
+  constructor(
+    jsonReporterPath: string,
+    googleSpreadsheets: GoogleSpreadsheetsContract
+  ) {
     this.#jsonReporterPath = jsonReporterPath;
     this.#judge = new Judge();
+    this.#googleSpreadsheets = googleSpreadsheets;
   }
 
   async logResults(
-    resultsPerSuite: Map<TTestSuiteId, Map<TTestCaseId, TResultStatus>>,
-    googleSpreadsheets: GoogleSpreadsheetsContract
+    resultsPerSuite: Map<TTestSuiteId, Map<TTestCaseId, TResultStatus>>
   ): Promise<void> {
-    const suitesMeta = await googleSpreadsheets.suitesMeta();
+    const suitesMeta = await this.#googleSpreadsheets.suitesMeta();
 
     for (const [suiteId, resultPerTestId] of resultsPerSuite) {
       const meta = suitesMeta.get(suiteId);
@@ -36,14 +40,42 @@ class TestRegistry implements TestRegistryContract {
         continue;
       }
 
-      const sheet = googleSpreadsheets.testSuiteSheet(meta.gid);
+      const sheet = this.#googleSpreadsheets.testSuiteSheet(meta.gid);
       await this.#writeSuiteResults(sheet, resultPerTestId);
     }
   }
 
-  async resultsPerSuite() {
+  async resultsPerSuite(): Promise<
+    Map<TTestSuiteId, Map<TTestCaseId, TResultStatus>>
+  > {
     const json = await this.#json();
-    return this.#judge.resultsPerSuite(json);
+    const base = this.#judge.resultsPerSuite(json);
+
+    // 보강: 시트에 존재하지만 실행되지 않은 TC를 not_executed 로 채운다.
+    const suitesMeta = await this.#googleSpreadsheets.suitesMeta();
+
+    for (const [suiteId, meta] of suitesMeta) {
+      const sheet = this.#googleSpreadsheets.testSuiteSheet(meta.gid);
+      const rows = await sheet.rows();
+      const testIdCol = sheet.columnNumberOf("testId");
+
+      const tcIdsInSheet: string[] = rows
+        .slice(2) // 헤더 2줄 제외
+        .map((row) => row[testIdCol] as string)
+        .filter(Boolean);
+
+      const bucket = base.get(suiteId) ?? new Map();
+
+      tcIdsInSheet.forEach((tcId) => {
+        if (!bucket.has(tcId)) {
+          bucket.set(tcId, "not_executed");
+        }
+      });
+
+      base.set(suiteId, bucket);
+    }
+
+    return base;
   }
 
   /** 시트 한 개에 대한 결과 기록 전체 프로세스 */
@@ -51,6 +83,8 @@ class TestRegistry implements TestRegistryContract {
     sheet: ReturnType<GoogleSpreadsheetsContract["testSuiteSheet"]>,
     resultPerTestId: Map<string, TResultStatus>
   ) {
+    if (resultPerTestId.size === 0) return;
+
     // 시트 데이터 로드
     const rows = await sheet.rows();
     const dataRows = rows.slice(2); // 헤더 제외
@@ -58,8 +92,8 @@ class TestRegistry implements TestRegistryContract {
     // (1) 결과값 배열 생성
     const resultValues: string[][] = dataRows.map((row: any[]) => {
       const testId: string = row[sheet.columnNumberOf("testId")] ?? "";
-      const status = resultPerTestId.get(testId) ?? "not_executed";
-      return [this.#judge.labelOf(status)];
+      const status = resultPerTestId.get(testId);
+      return [status ? this.#judge.labelOf(status) : ""];
     });
 
     // (2) 헤더 + 결과 합치기 후 작성
