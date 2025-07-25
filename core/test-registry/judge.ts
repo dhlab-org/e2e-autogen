@@ -1,4 +1,5 @@
-import { TResultStatus, TTestSuiteId } from "./types";
+import { TResultStatus } from "../config";
+import { TTestSuiteId } from "./types";
 
 type TTestCaseId = string;
 

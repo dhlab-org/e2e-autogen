@@ -3,23 +3,17 @@ import { sheets_v4 } from "googleapis";
 type SpreadsheetSheetContract = {
   gid: string;
   rows(): Promise<any[][]>;
-  writeAfterLastColumn(
-    values: readonly (readonly any[])[],
-    startRow?: number
-  ): Promise<void>;
-  writeAfterLastRow(values: readonly (readonly any[])[]): Promise<void>;
-  applyStyle(requests: sheets_v4.Schema$Request[]): Promise<void>;
 };
 
 class SpreadsheetSheet implements SpreadsheetSheetContract {
-  readonly #spreadsheetId: string;
+  protected readonly spreadsheetId: string;
   readonly #gid: string;
-  readonly #sheets: sheets_v4.Sheets;
+  protected readonly sheets: sheets_v4.Sheets;
 
   constructor(spreadsheetId: string, gid: string, sheets: sheets_v4.Sheets) {
-    this.#spreadsheetId = spreadsheetId;
+    this.spreadsheetId = spreadsheetId;
     this.#gid = gid;
-    this.#sheets = sheets;
+    this.sheets = sheets;
   }
 
   get gid() {
@@ -27,9 +21,9 @@ class SpreadsheetSheet implements SpreadsheetSheetContract {
   }
 
   async rows() {
-    const sheetName = await this.#sheetName();
-    const res = await this.#sheets.spreadsheets.values.get({
-      spreadsheetId: this.#spreadsheetId,
+    const sheetName = await this.sheetName();
+    const res = await this.sheets.spreadsheets.values.get({
+      spreadsheetId: this.spreadsheetId,
       range: `'${sheetName}'`,
     });
 
@@ -41,7 +35,7 @@ class SpreadsheetSheet implements SpreadsheetSheetContract {
    * @param values 추가할 데이터
    * @param startRow 데이터가 시작되는 row (default: 1)
    */
-  async writeAfterLastColumn(
+  protected async writeAfterLastColumn(
     values: readonly (readonly any[])[],
     startRow: number = 1
   ): Promise<void> {
@@ -57,7 +51,7 @@ class SpreadsheetSheet implements SpreadsheetSheetContract {
     const targetColumnNum = this.#columnLetterToNumber(targetColumnLetter);
     await this.#ensureColumnExists(targetColumnNum);
 
-    const sheetName = await this.#sheetName();
+    const sheetName = await this.sheetName();
 
     // 시트에 이미 존재하는 데이터 행 수
     const existingDataRows = Math.max(0, lastRow - (startRow - 1));
@@ -70,8 +64,8 @@ class SpreadsheetSheet implements SpreadsheetSheetContract {
     const endRow = startRow + padded.length - 1;
     const range = `'${sheetName}'!${targetColumnLetter}${startRow}:${targetColumnLetter}${endRow}`;
 
-    await this.#sheets.spreadsheets.values.update({
-      spreadsheetId: this.#spreadsheetId,
+    await this.sheets.spreadsheets.values.update({
+      spreadsheetId: this.spreadsheetId,
       range,
       valueInputOption: "RAW",
       requestBody: { values: padded },
@@ -84,13 +78,15 @@ class SpreadsheetSheet implements SpreadsheetSheetContract {
    * values 를 마지막 행 다음(A열 기준) 에 가로 방향으로 추가한다.
    * @param values 추가할 데이터
    */
-  async writeAfterLastRow(values: readonly (readonly any[])[]): Promise<void> {
+  protected async writeAfterLastRow(
+    values: readonly (readonly any[])[]
+  ): Promise<void> {
     if (values.length === 0) {
       console.warn("⚠️  작성할 데이터가 없습니다. writeAfterLastRow 스킵");
       return;
     }
 
-    const sheetName = await this.#sheetName();
+    const sheetName = await this.sheetName();
     const { lastRow } = await this.#dataRange();
 
     const startRow = lastRow + 1;
@@ -101,21 +97,21 @@ class SpreadsheetSheet implements SpreadsheetSheetContract {
       startRow + values.length - 1
     }`;
 
-    await this.#sheets.spreadsheets.values.update({
-      spreadsheetId: this.#spreadsheetId,
+    await this.sheets.spreadsheets.values.update({
+      spreadsheetId: this.spreadsheetId,
       range,
       valueInputOption: "RAW",
       requestBody: { values: values as any[][] },
     });
-
-    console.log(`✅ ${values.length} rows appended → ${range}`);
   }
 
-  async applyStyle(requests: sheets_v4.Schema$Request[]): Promise<void> {
+  protected async applyStyle(
+    requests: sheets_v4.Schema$Request[]
+  ): Promise<void> {
     if (!requests || requests.length === 0) return;
 
-    await this.#sheets.spreadsheets.batchUpdate({
-      spreadsheetId: this.#spreadsheetId,
+    await this.sheets.spreadsheets.batchUpdate({
+      spreadsheetId: this.spreadsheetId,
       requestBody: { requests },
     });
   }
@@ -140,10 +136,10 @@ class SpreadsheetSheet implements SpreadsheetSheetContract {
   /**
    * gid를 이용해 시트 이름을 조회한다.
    */
-  async #sheetName(): Promise<string> {
+  protected async sheetName(): Promise<string> {
     try {
-      const response = await this.#sheets.spreadsheets.get({
-        spreadsheetId: this.#spreadsheetId,
+      const response = await this.sheets.spreadsheets.get({
+        spreadsheetId: this.spreadsheetId,
       });
 
       const targetSheet = response.data.sheets?.find(
@@ -171,8 +167,8 @@ class SpreadsheetSheet implements SpreadsheetSheetContract {
       },
     };
 
-    await this.#sheets.spreadsheets.batchUpdate({
-      spreadsheetId: this.#spreadsheetId,
+    await this.sheets.spreadsheets.batchUpdate({
+      spreadsheetId: this.spreadsheetId,
       requestBody: { requests: [append] },
     });
 
@@ -180,8 +176,8 @@ class SpreadsheetSheet implements SpreadsheetSheetContract {
   }
 
   async #columnCount(): Promise<number> {
-    const response = await this.#sheets.spreadsheets.get({
-      spreadsheetId: this.#spreadsheetId,
+    const response = await this.sheets.spreadsheets.get({
+      spreadsheetId: this.spreadsheetId,
       includeGridData: false,
     });
 

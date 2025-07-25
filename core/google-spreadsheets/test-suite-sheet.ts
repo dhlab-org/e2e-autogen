@@ -6,6 +6,12 @@ import {
 
 type TestSuiteSheetContract = SpreadsheetSheetContract & {
   columnNumberOf(columnName: TColumnName): number;
+  appendResultColumn(
+    values: string[][],
+    statusLabels: string[],
+    totalRows: number,
+    colIdx: number
+  ): Promise<void>;
 };
 
 class TestSuiteSheet
@@ -28,6 +34,66 @@ class TestSuiteSheet
       comment: 7, // H: 코멘트
     };
     return columnMapping[columnName];
+  }
+
+  async appendResultColumn(
+    values: string[][],
+    statusLabels: string[],
+    totalRows: number,
+    colIdx: number
+  ) {
+    await this.writeAfterLastColumn(values, 1);
+    await this.#applyHeaderAndDropdown(statusLabels, totalRows, colIdx);
+  }
+
+  async #applyHeaderAndDropdown(
+    statusLabels: string[],
+    totalRows: number,
+    colIdx: number
+  ) {
+    const requests: any[] = [
+      {
+        repeatCell: {
+          range: {
+            sheetId: this.gid,
+            startRowIndex: 0,
+            endRowIndex: 2,
+            startColumnIndex: colIdx,
+            endColumnIndex: colIdx + 1,
+          },
+          cell: {
+            userEnteredFormat: {
+              backgroundColor: { red: 0.85, green: 0.92, blue: 0.98 },
+              horizontalAlignment: "CENTER",
+              textFormat: { bold: true },
+            },
+          },
+          fields:
+            "userEnteredFormat(backgroundColor,horizontalAlignment,textFormat.bold)",
+        },
+      },
+      {
+        setDataValidation: {
+          range: {
+            sheetId: this.gid,
+            startRowIndex: 2,
+            endRowIndex: totalRows,
+            startColumnIndex: colIdx,
+            endColumnIndex: colIdx + 1,
+          },
+          rule: {
+            condition: {
+              type: "ONE_OF_LIST",
+              values: statusLabels.map((v) => ({ userEnteredValue: v })),
+            },
+            strict: true,
+            showCustomUi: true,
+          },
+        },
+      },
+    ];
+
+    await this.applyStyle(requests);
   }
 }
 
