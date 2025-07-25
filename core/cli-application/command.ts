@@ -70,6 +70,7 @@ class Command implements CommandContract {
         sheetsUrl: this.#sheetsUrl(),
         credentialsPath: this.#credentialsPath(),
         generatedStubDir: this.#generatedStubDir(),
+        framework: this.#framework(),
       }))
       .with("UPDATE", () => ({
         sheetsUrl: this.#sheetsUrl(),
@@ -123,6 +124,17 @@ class Command implements CommandContract {
     }
 
     throw new Error("json reporter 옵션이 필요합니다.");
+  }
+
+  #framework(): TGenerateOptions["framework"] {
+    const frameworkIndex = this.#indexOf("--framework");
+
+    if (frameworkIndex !== -1) {
+      return (this.#args[frameworkIndex + 1] || "playwright") as
+        | TGenerateOptions["framework"];
+    }
+
+    return "playwright";
   }
 
   #indexOf(option: string): number {

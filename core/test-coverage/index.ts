@@ -174,6 +174,7 @@ class TestCoverage implements TestCoverageContract {
 }
 
 export { TestCoverage };
+
 export type {
   TTestCoverageResults,
   TOverallSummary,
