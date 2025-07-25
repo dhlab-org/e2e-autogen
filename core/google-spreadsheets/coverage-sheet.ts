@@ -73,7 +73,7 @@ class CoverageSheet extends SpreadsheetSheet implements CoverageSheetContract {
     if (suites.length === 0) return;
     const startRow = (await this.rows()).length + 3;
     const header = [
-      "대분류 수",
+      "대분류",
       "시나리오 수",
       "TC 수",
       "커버리지(%) (실행된 TC / 전체 TC)",
