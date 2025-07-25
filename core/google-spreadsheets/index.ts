@@ -107,6 +107,7 @@ class GoogleSpreadsheets implements GoogleSpreadsheetsContract {
               addSheet: {
                 properties: {
                   title: sheetTitle,
+                  index: 0, // 첫 번째 시트에 삽입
                 },
               },
             },
