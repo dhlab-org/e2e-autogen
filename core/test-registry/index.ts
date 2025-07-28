@@ -1,6 +1,6 @@
 import * as fs from "fs-extra";
 import { GoogleSpreadsheetsContract } from "../google-spreadsheets";
-import { Judge } from "./judge";
+import { ResultsMatrix } from "./results-matrix";
 import { TTestCaseId, TTestSuiteId } from "./types";
 import { TResultStatus } from "../config";
 
@@ -16,7 +16,7 @@ type TestRegistryContract = {
 
 class TestRegistry implements TestRegistryContract {
   readonly #jsonReporterPath: string;
-  readonly #judge: Judge;
+  readonly #matrix: ResultsMatrix;
   readonly #googleSpreadsheets: GoogleSpreadsheetsContract;
 
   constructor(
@@ -24,7 +24,7 @@ class TestRegistry implements TestRegistryContract {
     googleSpreadsheets: GoogleSpreadsheetsContract
   ) {
     this.#jsonReporterPath = jsonReporterPath;
-    this.#judge = new Judge();
+    this.#matrix = new ResultsMatrix();
     this.#googleSpreadsheets = googleSpreadsheets;
   }
 
@@ -49,7 +49,7 @@ class TestRegistry implements TestRegistryContract {
     Map<TTestSuiteId, Map<TTestCaseId, TResultStatus>>
   > {
     const json = await this.#json();
-    const base = this.#judge.resultsPerSuite(json);
+    const base = this.#matrix.resultsPerSuite(json);
 
     // 보강: 시트에 존재하지만 실행되지 않은 TC를 not_executed 로 채운다.
     const suitesMeta = await this.#googleSpreadsheets.suitesMeta();
@@ -93,7 +93,7 @@ class TestRegistry implements TestRegistryContract {
     const resultValues: string[][] = dataRows.map((row: any[]) => {
       const testId: string = row[sheet.columnNumberOf("testId")] ?? "";
       const status = resultPerTestId.get(testId);
-      return [status ? this.#judge.labelOf(status) : ""];
+      return [status ? this.#matrix.labelOf(status) : ""];
     });
 
     // (2) 헤더 + 결과 합치기 후 작성
@@ -111,7 +111,7 @@ class TestRegistry implements TestRegistryContract {
       "not_executed",
       "manual_only",
     ];
-    const statusLabels = statuses.map((s) => this.#judge.labelOf(s));
+    const statusLabels = statuses.map((s) => this.#matrix.labelOf(s));
 
     const colIdx = this.#resultColumnIndex(rows[0] ?? []);
     await sheet.appendResultColumn(
