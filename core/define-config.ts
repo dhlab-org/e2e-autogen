@@ -1,6 +1,6 @@
-import type { TE2EAutogenConfig } from "./types";
+import type { TE2EAutogenConfig } from "./config";
 
-const defineConfig = (config: TE2EAutogenConfig): TE2EAutogenConfig => {
+const defineConfig = (config: TUserConfig): TE2EAutogenConfig => {
   return {
     framework: config.framework ?? "playwright",
     sheetsUrl: config.sheetsUrl,
@@ -24,3 +24,12 @@ const defineConfig = (config: TE2EAutogenConfig): TE2EAutogenConfig => {
 };
 
 export default defineConfig;
+
+type TUserConfig = {
+  sheetsUrl: string;
+  framework?: "playwright" | "detox";
+  stubOutputFolder?: string;
+  jsonReporterFile?: string;
+  credentialsFile?: string;
+  googleSheetColumns?: TE2EAutogenConfig["googleSheetColumns"];
+};
