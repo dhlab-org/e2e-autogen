@@ -15,15 +15,15 @@ type TestRegistryContract = {
 };
 
 class TestRegistry implements TestRegistryContract {
-  readonly #jsonReporterPath: string;
+  readonly #jsonReporterFile: string;
   readonly #matrix: ResultsMatrix;
   readonly #googleSpreadsheets: GoogleSpreadsheetsContract;
 
   constructor(
-    jsonReporterPath: string,
+    jsonReporterFile: string,
     googleSpreadsheets: GoogleSpreadsheetsContract
   ) {
-    this.#jsonReporterPath = jsonReporterPath;
+    this.#jsonReporterFile = jsonReporterFile;
     this.#matrix = new ResultsMatrix();
     this.#googleSpreadsheets = googleSpreadsheets;
   }
@@ -134,10 +134,10 @@ class TestRegistry implements TestRegistryContract {
 
   async #json() {
     try {
-      const raw = await fs.readFile(this.#jsonReporterPath, "utf8");
+      const raw = await fs.readFile(this.#jsonReporterFile, "utf8");
       return JSON.parse(raw);
     } catch (error) {
-      throw new Error(`❌ ${this.#jsonReporterPath} 파일 읽기 실패: ${error}`);
+      throw new Error(`❌ ${this.#jsonReporterFile} 파일 읽기 실패: ${error}`);
     }
   }
 

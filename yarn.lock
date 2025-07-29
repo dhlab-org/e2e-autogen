@@ -35,7 +35,7 @@ __metadata:
     detox:
       optional: true
   bin:
-    e2e-autogen: dist/index.js
+    e2e-autogen: dist/core/cli.cjs
   languageName: unknown
   linkType: soft
 

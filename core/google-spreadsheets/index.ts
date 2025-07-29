@@ -8,11 +8,11 @@ import { CoverageSheet, CoverageSheetContract } from "./coverage-sheet";
 
 async function authorizedGoogleSpreadsheets(
   sheetsUrl: string,
-  credentialsPath: string
+  credentialsFile: string
 ) {
   try {
     const auth = new google.auth.GoogleAuth({
-      keyFile: credentialsPath,
+      keyFile: credentialsFile,
       scopes: ["https://www.googleapis.com/auth/spreadsheets"],
     });
 

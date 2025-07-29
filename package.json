@@ -2,21 +2,15 @@
   "name": "@dhlab/e2e-autogen",
   "bin": "dist/core/cli.cjs",
   "exports": {
-    "./playwright": {
-      "import": "./dist/packages/playwright/index.js",
-      "types": "./dist/packages/playwright/index.d.ts",
-      "require": "./dist/packages/playwright/index.cjs",
-      "default": "./dist/packages/playwright/index.cjs"
+    ".": {
+      "import": "./dist/core/define-config.js",
+      "types": "./dist/core/define-config.d.ts",
+      "require": "./dist/core/define-config.cjs",
+      "default": "./dist/core/define-config.cjs"
     },
     "./playwright/reporter": {
       "require": "./dist/packages/playwright/reporter.cjs",
       "default": "./dist/packages/playwright/reporter.cjs"
-    },
-    "./detox": {
-      "import": "./dist/packages/detox/index.js",
-      "types": "./dist/packages/detox/index.d.ts",
-      "require": "./dist/packages/detox/index.cjs",
-      "default": "./dist/packages/detox/index.cjs"
     }
   },
   "version": "0.1.2",
@@ -28,8 +22,8 @@
     "LICENSE"
   ],
   "scripts": {
-    "build": "rollup -c",
-    "dev": "tsx core/index.ts",
+    "build": "rollup -c && tsc --project tsconfig.declaration.json",
+    "dev": "tsx core/cli.ts",
     "test": "vitest",
     "test:ui": "vitest --ui"
   },
@@ -37,7 +31,8 @@
     "fs-extra": "^11.1.1",
     "google-auth-library": "^10.1.0",
     "googleapis": "105",
-    "tslib": "^2.8.1"
+    "tslib": "^2.8.1",
+    "tsx": "^4.6.0"
   },
   "devDependencies": {
     "@playwright/test": "^1.52.0",
