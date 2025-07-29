@@ -1,9 +1,9 @@
 import { sheets_v4 } from "googleapis";
+import { COLUMN_INDEX, TGoogleSheetColumns } from "../config";
 import {
   SpreadsheetSheet,
   SpreadsheetSheetContract,
 } from "./spreadsheet-sheet";
-import { COLUMN_INDEX, TGoogleSheetColumns } from "../config";
 
 type TestSuiteSheetContract = SpreadsheetSheetContract & {
   columnNumberOf(columnName: keyof TGoogleSheetColumns): number;

@@ -1,11 +1,9 @@
-import * as fs from "fs-extra";
-
-import { GoogleSpreadsheetsContract } from "../google-spreadsheets";
-import { TCSheetBundle } from "./tcsheet-bundle";
-import { Scenario } from "./scenario";
-import { PlaywrightTemplate } from "./playwright-template";
-import { DetoxTemplate } from "./detox-template";
 import { match } from "ts-pattern";
+import { GoogleSpreadsheetsContract } from "../google-spreadsheets";
+import { DetoxTemplate } from "./detox-template";
+import { PlaywrightTemplate } from "./playwright-template";
+import { Scenario } from "./scenario";
+import { TCSheetBundle } from "./tcsheet-bundle";
 
 type TestScribeContract = {
   generateStubFor(framework: "playwright" | "detox"): Promise<void>;
@@ -24,13 +22,10 @@ class TestScribe implements TestScribeContract {
   }
 
   async generateStubFor(framework: "playwright" | "detox"): Promise<void> {
-    console.log(`🔗 Google Sheets URL: ${this.#googleSpreadsheets.fullUrl}`);
-    console.log(`📁 출력 디렉토리: ${this.#targetDir}`);
-
     try {
-      await fs.ensureDir(this.#targetDir);
+      console.log("🚀 스텁 생성을 시작합니다...");
 
-      // 1. 시트에서 데이터 수집 -> Map<TC-x, TRow[]>
+      // 1. 시트별 로우 데이터 수집 -> Map<TC-x, TRow[]>
       const tcSheetBundle = new TCSheetBundle(this.#googleSpreadsheets);
       const rowsPerPrefix = await tcSheetBundle.rowsPerPrefix();
 
@@ -43,16 +38,19 @@ class TestScribe implements TestScribeContract {
       // 3. 스텁 코드 생성
       match(framework)
         .with("playwright", async () => {
-          const template = new PlaywrightTemplate(scenariosPerPrefix);
-          await template.write(this.#targetDir);
+          const playwrightTemplate = new PlaywrightTemplate(scenariosPerPrefix);
+          await playwrightTemplate.write(this.#targetDir);
         })
         .with("detox", async () => {
-          const template = new DetoxTemplate(scenariosPerPrefix);
-          await template.write(this.#targetDir);
+          const detoxTemplate = new DetoxTemplate(scenariosPerPrefix);
+          await detoxTemplate.write(this.#targetDir);
         })
         .exhaustive();
+
+      console.log("✅ 스텁 생성이 완료되었습니다!");
     } catch (error) {
-      throw new Error(`❌ Playwright 스텁 코드 생성 실패: ${error}`);
+      console.error("❌ 스텁 생성 실패:", error);
+      throw error;
     }
   }
 }

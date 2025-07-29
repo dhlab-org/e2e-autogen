@@ -1,11 +1,11 @@
 import { google, sheets_v4 } from "googleapis";
+import { TGoogleSheetColumns } from "../config";
+import { CoverageSheet, CoverageSheetContract } from "./coverage-sheet";
 import {
   SpreadsheetSheet,
   SpreadsheetSheetContract,
 } from "./spreadsheet-sheet";
 import { TestSuiteSheet, TestSuiteSheetContract } from "./test-suite-sheet";
-import { CoverageSheet, CoverageSheetContract } from "./coverage-sheet";
-import { TGoogleSheetColumns } from "../config";
 
 async function authorizedGoogleSpreadsheets(
   sheetsUrl: string,

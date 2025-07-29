@@ -1,13 +1,13 @@
+import {
+  FullConfig,
+  TestResult as PlaywrightTestResult,
+  Reporter,
+  Suite,
+  TestCase,
+  TestStep,
+} from "@playwright/test/reporter";
 import fs from "fs";
 import path from "path";
-import {
-  Reporter,
-  TestCase,
-  TestResult as PlaywrightTestResult,
-  FullConfig,
-  TestStep,
-  Suite,
-} from "@playwright/test/reporter";
 
 class E2EAutogenPlaywrightReporter implements Reporter {
   private outputFile: string;

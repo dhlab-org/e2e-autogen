@@ -1,6 +1,6 @@
 import { match } from "ts-pattern";
-import { TFlag, TGenerateOptions, TSubCommand, TUpdateOptions } from "./types";
 import { TE2EAutogenConfig } from "../config";
+import { TFlag, TGenerateOptions, TSubCommand, TUpdateOptions } from "./types";
 
 type CommandContract = {
   type: "FLAG" | "SUB_COMMAND";

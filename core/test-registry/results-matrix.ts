@@ -1,5 +1,5 @@
 import { TResultStatus } from "../config";
-import { TTestSuiteId, TTestCaseId } from "./types";
+import { TTestCaseId, TTestSuiteId } from "./types";
 
 type ResultsMatrixContract = {
   resultsPerSuite(
