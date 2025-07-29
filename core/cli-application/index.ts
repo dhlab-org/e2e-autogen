@@ -76,12 +76,18 @@ class CliApplication implements CliApplicationContract {
   }
 
   async #generateStub() {
-    const { sheetsUrl, credentialsFile, stubOutputFolder, framework } =
-      this.#command.optionsOf("GENERATE");
+    const {
+      sheetsUrl,
+      credentialsFile,
+      stubOutputFolder,
+      framework,
+      googleSheetColumns,
+    } = this.#command.optionsOf("GENERATE");
 
     const googleSpreadsheets = await authorizedGoogleSpreadsheets(
       sheetsUrl,
-      credentialsFile
+      credentialsFile,
+      googleSheetColumns
     );
 
     const testScribe = new TestScribe(googleSpreadsheets, stubOutputFolder);
@@ -89,12 +95,13 @@ class CliApplication implements CliApplicationContract {
   }
 
   async #logResults() {
-    const { sheetsUrl, jsonReporterFile, credentialsFile } =
+    const { sheetsUrl, jsonReporterFile, credentialsFile, googleSheetColumns } =
       this.#command.optionsOf("UPDATE");
 
     const googleSpreadsheets = await authorizedGoogleSpreadsheets(
       sheetsUrl,
-      credentialsFile
+      credentialsFile,
+      googleSheetColumns
     );
 
     const testRegistry = new TestRegistry(jsonReporterFile, googleSpreadsheets);

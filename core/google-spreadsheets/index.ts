@@ -5,10 +5,12 @@ import {
 } from "./spreadsheet-sheet";
 import { TestSuiteSheet, TestSuiteSheetContract } from "./test-suite-sheet";
 import { CoverageSheet, CoverageSheetContract } from "./coverage-sheet";
+import { TGoogleSheetColumns } from "../config";
 
 async function authorizedGoogleSpreadsheets(
   sheetsUrl: string,
-  credentialsFile: string
+  credentialsFile: string,
+  googleSheetColumns: TGoogleSheetColumns
 ) {
   try {
     const auth = new google.auth.GoogleAuth({
@@ -22,7 +24,7 @@ async function authorizedGoogleSpreadsheets(
       auth: authClient,
     } as any);
 
-    return new GoogleSpreadsheets(sheetsUrl, v4sheets);
+    return new GoogleSpreadsheets(sheetsUrl, v4sheets, googleSheetColumns);
   } catch (error) {
     throw new Error(`Google Sheets 인증 실패: ${error}`);
   }
@@ -41,10 +43,16 @@ class GoogleSpreadsheets implements GoogleSpreadsheetsContract {
   readonly #sheetsUrl: string;
   readonly #v4sheets: sheets_v4.Sheets;
   #cachedSheets: sheets_v4.Schema$Sheet[] | null = null;
+  readonly #googleSheetColumns: TGoogleSheetColumns;
 
-  constructor(sheetsUrl: string, v4sheets: sheets_v4.Sheets) {
+  constructor(
+    sheetsUrl: string,
+    v4sheets: sheets_v4.Sheets,
+    googleSheetColumns: TGoogleSheetColumns
+  ) {
     this.#sheetsUrl = sheetsUrl;
     this.#v4sheets = v4sheets;
+    this.#googleSheetColumns = googleSheetColumns;
   }
 
   get id() {
@@ -86,8 +94,12 @@ class GoogleSpreadsheets implements GoogleSpreadsheetsContract {
   }
 
   testSuiteSheet(gid: string) {
-    return new TestSuiteSheet(this.id, gid, this.#v4sheets, () =>
-      this.#rawSheets()
+    return new TestSuiteSheet(
+      this.id,
+      gid,
+      this.#v4sheets,
+      this.#googleSheetColumns,
+      () => this.#rawSheets()
     );
   }
 

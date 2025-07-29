@@ -5,10 +5,14 @@ export type TSubCommand = "GENERATE" | "UPDATE";
 
 export type TGenerateOptions = Pick<
   TE2EAutogenConfig,
-  "sheetsUrl" | "credentialsFile" | "stubOutputFolder" | "framework"
+  | "sheetsUrl"
+  | "credentialsFile"
+  | "stubOutputFolder"
+  | "framework"
+  | "googleSheetColumns"
 >;
 
 export type TUpdateOptions = Pick<
   TE2EAutogenConfig,
-  "sheetsUrl" | "credentialsFile" | "jsonReporterFile"
+  "sheetsUrl" | "credentialsFile" | "jsonReporterFile" | "googleSheetColumns"
 >;

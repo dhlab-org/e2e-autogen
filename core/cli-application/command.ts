@@ -73,11 +73,13 @@ class Command implements CommandContract {
         credentialsFile: this.#config.credentialsFile,
         stubOutputFolder: this.#config.stubOutputFolder,
         framework: this.#config.framework,
+        googleSheetColumns: this.#config.googleSheetColumns,
       }))
       .with("UPDATE", () => ({
         sheetsUrl: this.#config.sheetsUrl,
         credentialsFile: this.#config.credentialsFile,
         jsonReporterFile: this.#config.jsonReporterFile,
+        googleSheetColumns: this.#config.googleSheetColumns,
       }))
       .exhaustive();
   }
