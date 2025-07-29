@@ -1,14 +1,17 @@
 # 🤖 E2E Autogen
 
-Google 스프레드시트 기반 시나리오를 Playwright 테스트 **스텁 코드**로 자동 생성하는 CLI 도구입니다.
+Google 스프레드시트 기반 시나리오를 E2E 테스트 **스텁 코드**로 자동 생성하고, 테스트 결과를 관리하는 CLI 도구입니다.
 
 ## ✨ 주요 기능
 
 - 🌐 **Google Sheets 연동**: 서비스 어카운트 인증으로 시트를 안전하게 불러옵니다
 - 🔍 **멀티 시트 자동 처리**: `[TC-x]` 시트를 자동 감지하여 한 번에 변환합니다
-- 🧪 **Playwright 스텁 생성**: 시나리오 기반 테스트 코드 틀을 즉시 생성합니다
+- 🧪 **프레임워크 지원**: Playwright와 Detox 테스트 코드 스텁을 생성합니다
 - 🚀 **간편 CLI**: 한 줄 명령으로 손쉽게 실행할 수 있습니다
-- 📝 **결과 자동 업데이트**: 테스트 실행 결과를 Google Sheets에 자동으로 업데이트
+- 📝 **결과 자동 업데이트**: 테스트 실행 결과를 Google Sheets에 자동으로 업데이트합니다
+- 📊 **커버리지 분석**: 테스트 실행률, 성공률, 시트별 상세 통계를 제공합니다
+- 🎯 **커스텀 리포터**: 전용 리포터로 정확한 테스트 결과 분석을 지원합니다
+- ⚙️ **유연한 설정**: 사용자 정의 컬럼 매핑으로 다양한 시트 구조를 지원합니다
 
 > 💡 **스텁 코드(Stub Code)란?**  
 > 실제 구현 로직은 없지만 기본 구조와 가이드 주석이 포함된 코드 틀입니다.  
@@ -56,17 +59,17 @@ mkdir -p playwright/.auth
 팀 공통 QA 시트를 이용해주세요.  
 스프레드시트는 다음과 같은 컬럼 구조로 이루어져 있습니다.
 
-| 컬럼              | 설명                                     | 예시                                          |
-| ----------------- | ---------------------------------------- | --------------------------------------------- |
-| A (시나리오 ID)   | 테스트 시나리오 식별자                   | TC-1.1                                        |
-| B (e2e 시나리오)  | 시나리오 설명                            | 질문 입력                                     |
-| C (UI path)       | 테스트 대상 UI 경로                      | 홈 / 입력창                                   |
-| D (action/when)   | 테스트 액션 또는 조건                    | 메인화면 로드                                 |
-| E (expected/then) | 기대 결과                                | 질문 입력창이 정상적으로 표시                 |
-| F (테스트 ID)     | 개별 테스트 스텝 식별자                  | TC-1.1.1                                      |
-| G (Tag)           | 어떤 맥락에서 나온 테스트케이스인지 기록 | `default`, `bugfix`, `new`                    |
-| H (Comment)       | 자유롭게 작성                            |                                               |
-| I~ (결과 컬럼)    | 테스트 실행 결과 (자동 업데이트)         | `pass`, `fail`, `not_executed`, `manual_only` |
+| 컬럼              | 설명                                     | 예시                                                   |
+| ----------------- | ---------------------------------------- | ------------------------------------------------------ |
+| A (시나리오 ID)   | 테스트 시나리오 식별자                   | TC-1.1                                                 |
+| B (e2e 시나리오)  | 시나리오 설명                            | 질문 입력                                              |
+| C (UI path)       | 테스트 대상 UI 경로                      | 홈 / 입력창                                            |
+| D (action/when)   | 테스트 액션 또는 조건                    | 메인화면 로드                                          |
+| E (expected/then) | 기대 결과                                | 질문 입력창이 정상적으로 표시                          |
+| F (테스트 ID)     | 개별 테스트 스텝 식별자                  | TC-1.1.1                                               |
+| G (Tag)           | 어떤 맥락에서 나온 테스트케이스인지 기록 | `bugfix`, `new`                                        |
+| H (Comment)       | 자유롭게 작성                            |                                                        |
+| I~ (결과 컬럼)    | 테스트 실행 결과 (자동 업데이트)         | `pass`, `fail`, `flaky`, `not_executed`, `manual_only` |
 
 ### 3️⃣ 스프레드시트 공유 설정
 
@@ -75,16 +78,51 @@ mkdir -p playwright/.auth
 3. 노션에 안내된 서비스 어카운트 이메일을 **Editor** 권한으로 추가
 4. 스프레드시트 URL을 복사합니다 (URL에 포함된 gid가 특정 시트를 지정합니다)
 
+## ⚙️ 설정 파일
+
+프로젝트 루트에 `e2e-autogen.config.ts` 파일을 생성하고 다음과 같이 설정하세요:
+
+```typescript
+export default {
+  // Google Sheets URL (required)
+  sheetsUrl: "https://docs.google.com/spreadsheets/d/...",
+
+  // 테스트 프레임워크 (optional, default: "playwright")
+  framework: "playwright",
+
+  // 스텁 코드 생성 디렉토리 (optional, default: "./playwright/__generated-stub__")
+  stubOutputFolder: "./playwright/__generated-stub__",
+
+  // 테스트 결과 JSON 파일 경로 (optional, default: "./playwright/e2e-autogen-reporter.json")
+  jsonReporterFile: "./playwright/e2e-autogen-reporter.json",
+
+  // Google API 인증 파일 경로 (optional, default: "./playwright/.auth/credentials.json")
+  credentialsFile: "./playwright/.auth/credentials.json",
+
+  // Google Sheets 컬럼 매핑 (optional, 사용자 정의 가능)
+  googleSheetColumns: {
+    scenarioId: "A", // 시나리오 ID 컬럼
+    scenarioDescription: "B", // 시나리오 설명 컬럼
+    uiPath: "C", // UI 경로 컬럼
+    when: "D", // 액션/조건 컬럼
+    then: "E", // 기대결과 컬럼
+    testId: "F", // 테스트 ID 컬럼
+    tag: "G", // 태그 컬럼
+    comment: "H", // 코멘트 컬럼
+  },
+};
+```
+
 ## 🚀 사용법
 
 ### 💻 CLI 명령어
 
 ```bash
-# 스프레드시트 전체에서 [TC-x] 시트 자동 처리 (추천)
-e2e-autogen https://docs.google.com/spreadsheets/d/[SPREADSHEET_ID]/edit
+# 스프레드시트에서 [TC-x] 시트 자동 처리
+e2e-autogen generate
 
-# 출력 디렉토리 지정
-e2e-autogen https://docs.google.com/spreadsheets/d/[SPREADSHEET_ID]/edit --output ./playwright/__generated-stub__
+# 시트에 테스트 결과 자동 업데이트
+e2e-autogen update
 
 # 도움말 보기
 e2e-autogen --help
@@ -93,36 +131,11 @@ e2e-autogen --help
 e2e-autogen --version
 ```
 
-### ⚙️ 옵션
-
-- `<url>`: Google Sheets 스프레드시트 URL (필수)
-  - gid가 **없으면** `[TC-x]` 패턴 시트를 자동 감지하여 모두 처리
-  - gid가 **있으면** 해당 시트만 처리
-- `--output <dir>`: 생성된 테스트 파일을 저장할 디렉토리 (기본값: `./__generated__/playwright`)
-- `--help`, `-h`: 도움말 표시
-- `--version`, `-v`: 버전 정보 표시
-
-### 🔗 외부 프로젝트에서 사용
-
-package.json에 스크립트를 추가하여 사용할 수 있습니다:
-
-```json
-{
-  "scripts": {
-    "generate-e2e": "e2e-autogen https://docs.google.com/spreadsheets/d/[SPREADSHEET_ID]/edit --output ./playwright/__generated-stub__"
-  }
-}
-```
-
-실제 사용 예시:
-
-```bash
-yarn generate-e2e
-```
-
 ## 🎯 생성된 테스트 코드 예시
 
-Google Sheets 데이터에서 다음과 같은 Playwright 테스트 스텁 코드가 생성됩니다:
+Google Sheets 데이터에서 다음과 같은 테스트 스텁 코드가 생성됩니다:
+
+### Playwright 스텁 코드
 
 ```typescript
 // 📝 Auto-generated by E2E-Autogen
@@ -142,21 +155,15 @@ test("[TC-1.1] 질문 입력", async ({ page }) => {
     // 🎬 When: 질문 입력창에 문자 입력
     // ✅ Then: 정상적으로 입력됨
   });
-
-  await test.step("[TC-1.1.3] 입력 완료 -> 전송 버튼 활성화", async () => {
-    // 📍 UI Path: 홈 / 입력창
-    // 🎬 When: 입력 완료
-    // ✅ Then: 전송 버튼 활성화
-  });
 });
 ```
 
 > **💡 스텁 코드 특징**
 >
 > - 각 테스트 케이스는 여러 스텝으로 구성됩니다
-> - 실제 구현 로직은 포함되지 않으며, 개발자가 직접 추가해야 합니다 (playwright test generator를 활용하면 빠르게 작성 가능합니다.)
+> - 실제 구현 로직은 포함되지 않으며, 개발자가 직접 추가해야 합니다
 > - Given/When/Then 패턴을 따르는 BDD 스타일 주석이 포함됩니다
-> - 테스트 실행 후 결과가 자동으로 Google Sheets에 업데이트됩니다
+> - Playwright Test Generator를 활용하면 빠르게 작성 가능합니다
 
 ## 📁 생성된 파일 구조
 
@@ -165,17 +172,52 @@ test("[TC-1.1] 질문 입력", async ({ page }) => {
 └── TC-1.stub.ts   # sheetId(대분류)별 테스트 파일
 ```
 
+## 🎯 커스텀 리포터 설정
+
+정확한 테스트 결과 분석을 위해 전용 리포터를 사용하세요:
+
+### Playwright 설정
+
+`playwright.config.ts`에 리포터를 추가하세요:
+
+```typescript
+import { defineConfig } from "@playwright/test";
+
+export default defineConfig({
+  // ... 기존 설정
+
+  reporter: [
+    ["html"],
+    [
+      require.resolve("@dhlab/e2e-autogen/playwright/reporter"),
+      {
+        outputFile: "./playwright/e2e-autogen-report.json",
+      },
+    ],
+  ],
+
+  // ... 나머지 설정
+});
+```
+
+### 리포터 기능
+
+- **test.step별 상태 추적**: 각 테스트 스텝의 성공/실패/재시도 상태를 정확히 기록
+- **Flaky 테스트 감지**: 재시도 시 성공/실패가 혼재하는 불안정한 테스트를 자동 감지
+- **Manual 테스트 지원**: 수동으로만 실행 가능한 테스트 케이스 구분
+- **상세 메타데이터**: 실행 시간, 에러 메시지, 테스트 ID 등 상세 정보 수집
+
 ## 📊 테스트 결과 자동 업데이트
 
 테스트 실행 결과를 Google Sheets에 자동으로 업데이트하는 기능입니다:
 
-**📍 결과 기록 방식**
+### 📍 결과 기록 방식
 
 - **위치**: 마지막 컬럼 다음에 자동으로 추가됩니다
 - **구조**: 결과 + 실행 날짜/시간 컬럼으로 구성됩니다
 - **드롭다운**: 결과 컬럼에는 선택 가능한 드롭다운 메뉴가 제공됩니다
 
-**🎯 지원 결과 유형**
+### 🎯 지원 결과 유형
 
 - ✅ `pass`: 테스트 성공
 - ❌ `fail`: 테스트 실패
@@ -183,25 +225,52 @@ test("[TC-1.1] 질문 입력", async ({ page }) => {
 - ⏭️ `not_executed`: 미실행
 - 📝 `manual_only`: 수동 테스트만 가능
 
-**⚡ 자동화 기능**
+### ⚡ 자동화 기능
 
-- **시트 업데이트**: Playwright 테스트 실행 후 결과가 시트에 반영
+- **시트 업데이트**: 테스트 실행 후 결과가 시트에 반영
 - **이력 관리**: 실행 날짜와 시간을 `YYYYMMDD:HH:mm` 형식으로 기록
 - **시트별 처리**: `[TC-x]` 패턴의 시트를 자동 감지하여 각각 업데이트
 - **결과 통계**: 테스트 ID별로 성공/실패 횟수를 집계하여 상태 결정
 
-**🔧 사용 방법**
+## 📊 커버리지 분석
 
-```bash
-# 테스트 결과 업데이트
-e2e-autogen update --sheets "https://docs.google.com/..." \
-                   --reporter ./playwright/reporters/results.json
-```
+테스트 실행 결과를 바탕으로 상세한 커버리지 분석을 제공합니다:
+
+### 📈 제공 지표
+
+#### 전체 요약
+
+- **총 스위트 수**: 분석된 테스트 스위트 개수
+- **시나리오 수**: 총 테스트 시나리오 개수
+- **테스트 케이스 수**: 총 테스트 케이스 개수
+- **실행률**: (실행된 테스트 / 전체 테스트) × 100
+- **성공률**: (성공한 테스트 / 실행된 테스트) × 100
+
+#### 상태별 통계
+
+- `pass`: 성공한 테스트 수
+- `fail`: 실패한 테스트 수
+- `flaky`: 불안정한 테스트 수
+- `not_executed`: 미실행 테스트 수
+- `manual_only`: 수동 테스트 수
+
+#### 스위트별 분석
+
+각 테스트 스위트(`[TC-x]`)별로 개별 커버리지 통계를 제공합니다.
+
+### 📋 커버리지 시트 자동 생성
+
+`e2e-autogen update` 실행 시 `[COVERAGE]` 시트가 자동으로 생성되어 다음 정보를 기록합니다:
+
+- 실행 시간 및 날짜
+- 전체 커버리지 요약
+- 스위트별 상세 통계
+- 시간별 커버리지 변화 추이
 
 > **💡 주의사항**
 >
 > - 서비스 어카운트에 **Editor** 권한이 필요합니다
-> - Playwright JSON 리포터 결과 파일이 필요합니다
+> - 커스텀 리포터 설정이 필요합니다
 > - 각 시트는 `[TC-x]` 형식으로 작성되어야 합니다
 
 ## 📄 라이선스
