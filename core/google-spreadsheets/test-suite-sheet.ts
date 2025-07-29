@@ -18,8 +18,13 @@ class TestSuiteSheet
   extends SpreadsheetSheet
   implements TestSuiteSheetContract
 {
-  constructor(spreadsheetId: string, gid: string, sheets: sheets_v4.Sheets) {
-    super(spreadsheetId, gid, sheets);
+  constructor(
+    spreadsheetId: string,
+    gid: string,
+    sheets: sheets_v4.Sheets,
+    sheetsProvider?: () => Promise<sheets_v4.Schema$Sheet[]>
+  ) {
+    super(spreadsheetId, gid, sheets, sheetsProvider);
   }
 
   columnNumberOf(columnName: TColumnName): number {

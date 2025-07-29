@@ -9,11 +9,20 @@ class SpreadsheetSheet implements SpreadsheetSheetContract {
   protected readonly spreadsheetId: string;
   readonly #gid: string;
   protected readonly sheets: sheets_v4.Sheets;
+  #cachedSheetName: string | null = null;
+  #cachedColumnCount: number | null = null;
+  readonly #rawSheets: (() => Promise<sheets_v4.Schema$Sheet[]>) | null;
 
-  constructor(spreadsheetId: string, gid: string, sheets: sheets_v4.Sheets) {
+  constructor(
+    spreadsheetId: string,
+    gid: string,
+    sheets: sheets_v4.Sheets,
+    rawSheets?: () => Promise<sheets_v4.Schema$Sheet[]>
+  ) {
     this.spreadsheetId = spreadsheetId;
     this.#gid = gid;
     this.sheets = sheets;
+    this.#rawSheets = rawSheets || null;
   }
 
   get gid() {
@@ -137,6 +146,22 @@ class SpreadsheetSheet implements SpreadsheetSheetContract {
    * gid를 이용해 시트 이름을 조회한다.
    */
   protected async sheetName(): Promise<string> {
+    if (this.#cachedSheetName) {
+      return this.#cachedSheetName;
+    }
+
+    if (this.#rawSheets) {
+      const sheetsData = await this.#rawSheets();
+      const targetSheet = sheetsData.find(
+        (sheet) => String(sheet.properties?.sheetId) === this.#gid
+      );
+
+      if (targetSheet?.properties?.title) {
+        this.#cachedSheetName = targetSheet.properties.title;
+        return this.#cachedSheetName;
+      }
+    }
+
     try {
       const response = await this.sheets.spreadsheets.get({
         spreadsheetId: this.spreadsheetId,
@@ -149,6 +174,8 @@ class SpreadsheetSheet implements SpreadsheetSheetContract {
       const name = targetSheet?.properties?.title;
       if (!name)
         throw new Error(`gid(${this.#gid})에 해당하는 시트를 찾지 못했습니다.`);
+
+      this.#cachedSheetName = name;
       return name;
     } catch (error) {
       throw new Error(`시트 이름 조회 실패: ${error}`);
@@ -172,10 +199,28 @@ class SpreadsheetSheet implements SpreadsheetSheetContract {
       requestBody: { requests: [append] },
     });
 
+    this.invalidateCache();
     console.log(`📐 시트 컬럼 확장: ${columnCount} → ${columnNumber}`);
   }
 
   async #columnCount(): Promise<number> {
+    if (this.#cachedColumnCount !== null) {
+      return this.#cachedColumnCount;
+    }
+
+    if (this.#rawSheets) {
+      const sheetsData = await this.#rawSheets();
+      const targetSheet = sheetsData.find(
+        (sheet) => String(sheet.properties?.sheetId) === this.#gid
+      );
+
+      const columnCount = targetSheet?.properties?.gridProperties?.columnCount;
+      if (columnCount !== undefined && columnCount !== null) {
+        this.#cachedColumnCount = columnCount;
+        return columnCount;
+      }
+    }
+
     const response = await this.sheets.spreadsheets.get({
       spreadsheetId: this.spreadsheetId,
       includeGridData: false,
@@ -185,7 +230,15 @@ class SpreadsheetSheet implements SpreadsheetSheetContract {
       (sheet) => String(sheet.properties?.sheetId) === this.#gid
     );
 
-    return targetSheet?.properties?.gridProperties?.columnCount ?? 0;
+    const columnCount =
+      targetSheet?.properties?.gridProperties?.columnCount ?? 0;
+    this.#cachedColumnCount = columnCount;
+    return columnCount;
+  }
+
+  protected invalidateCache(): void {
+    this.#cachedSheetName = null;
+    this.#cachedColumnCount = null;
   }
 
   #numberToColumnLetter(num: number): string {
