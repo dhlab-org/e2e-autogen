@@ -1,8 +1,8 @@
 import * as fs from "fs-extra";
+import { TResultStatus } from "../config";
 import { GoogleSpreadsheetsContract } from "../google-spreadsheets";
 import { ResultsMatrix } from "./results-matrix";
 import { TTestCaseId, TTestSuiteId } from "./types";
-import { TResultStatus } from "../config";
 
 type TestRegistryContract = {
   logResults(

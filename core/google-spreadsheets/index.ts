@@ -1,14 +1,16 @@
 import { google, sheets_v4 } from "googleapis";
+import { TGoogleSheetColumns } from "../config";
+import { CoverageSheet, CoverageSheetContract } from "./coverage-sheet";
 import {
   SpreadsheetSheet,
   SpreadsheetSheetContract,
 } from "./spreadsheet-sheet";
 import { TestSuiteSheet, TestSuiteSheetContract } from "./test-suite-sheet";
-import { CoverageSheet, CoverageSheetContract } from "./coverage-sheet";
 
 async function authorizedGoogleSpreadsheets(
   sheetsUrl: string,
-  credentialsFile: string
+  credentialsFile: string,
+  googleSheetColumns: TGoogleSheetColumns
 ) {
   try {
     const auth = new google.auth.GoogleAuth({
@@ -22,7 +24,7 @@ async function authorizedGoogleSpreadsheets(
       auth: authClient,
     } as any);
 
-    return new GoogleSpreadsheets(sheetsUrl, v4sheets);
+    return new GoogleSpreadsheets(sheetsUrl, v4sheets, googleSheetColumns);
   } catch (error) {
     throw new Error(`Google Sheets 인증 실패: ${error}`);
   }
@@ -40,10 +42,17 @@ type GoogleSpreadsheetsContract = {
 class GoogleSpreadsheets implements GoogleSpreadsheetsContract {
   readonly #sheetsUrl: string;
   readonly #v4sheets: sheets_v4.Sheets;
+  #cachedSheets: sheets_v4.Schema$Sheet[] | null = null;
+  readonly #googleSheetColumns: TGoogleSheetColumns;
 
-  constructor(sheetsUrl: string, v4sheets: sheets_v4.Sheets) {
+  constructor(
+    sheetsUrl: string,
+    v4sheets: sheets_v4.Sheets,
+    googleSheetColumns: TGoogleSheetColumns
+  ) {
     this.#sheetsUrl = sheetsUrl;
     this.#v4sheets = v4sheets;
+    this.#googleSheetColumns = googleSheetColumns;
   }
 
   get id() {
@@ -79,11 +88,19 @@ class GoogleSpreadsheets implements GoogleSpreadsheetsContract {
   }
 
   sheet(gid: string) {
-    return new SpreadsheetSheet(this.id, gid, this.#v4sheets);
+    return new SpreadsheetSheet(this.id, gid, this.#v4sheets, () =>
+      this.#rawSheets()
+    );
   }
 
   testSuiteSheet(gid: string) {
-    return new TestSuiteSheet(this.id, gid, this.#v4sheets);
+    return new TestSuiteSheet(
+      this.id,
+      gid,
+      this.#v4sheets,
+      this.#googleSheetColumns,
+      () => this.#rawSheets()
+    );
   }
 
   async coverageSheet(): Promise<CoverageSheetContract> {
@@ -119,6 +136,7 @@ class GoogleSpreadsheets implements GoogleSpreadsheetsContract {
         response.data.replies?.[0]?.addSheet?.properties;
       if (newSheetProperties?.sheetId != null) {
         gid = String(newSheetProperties.sheetId);
+        this.#invalidateCache();
       }
     }
 
@@ -126,15 +144,30 @@ class GoogleSpreadsheets implements GoogleSpreadsheetsContract {
       throw new Error("`[COVERAGE]` 시트를 찾거나 생성하는 데 실패했습니다.");
     }
 
-    return new CoverageSheet(this.id, gid, this.#v4sheets);
+    return new CoverageSheet(this.id, gid, this.#v4sheets, () =>
+      this.#rawSheets()
+    );
   }
 
+  /**
+   * 시트 정보를 캐싱하여 반복적인 API 호출을 방지합니다.
+   * 첫 번째 호출 시에만 API를 요청하고, 이후에는 캐시된 데이터를 반환합니다.
+   */
   async #rawSheets(): Promise<sheets_v4.Schema$Sheet[]> {
+    if (this.#cachedSheets) {
+      return this.#cachedSheets;
+    }
+
     const response = await this.#v4sheets.spreadsheets.get({
       spreadsheetId: this.id,
     });
 
-    return response.data.sheets ?? [];
+    this.#cachedSheets = response.data.sheets ?? [];
+    return this.#cachedSheets;
+  }
+
+  #invalidateCache(): void {
+    this.#cachedSheets = null;
   }
 }
 

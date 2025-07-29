@@ -1,10 +1,10 @@
 import { match } from "ts-pattern";
+import { TE2EAutogenConfig } from "../config";
 import { authorizedGoogleSpreadsheets } from "../google-spreadsheets";
+import { TestCoverage } from "../test-coverage";
 import { TestRegistry } from "../test-registry";
 import { TestScribe } from "../test-scribe";
 import { Command, CommandContract } from "./command";
-import { TestCoverage } from "../test-coverage";
-import { TE2EAutogenConfig } from "../config";
 
 import { version } from "../../package.json";
 
@@ -45,30 +45,53 @@ class CliApplication implements CliApplicationContract {
 
   #showUsage(): void {
     console.log(`
-      # e2e-autogen.config.ts 파일을 생성하고 설정해주세요.
-      # 예시: 
-      # 
-      # 
-      # 
-      # 
-      # 
-  사용법: e2e-autogen 서브커맨드
-  
-  플래그:
-    -h, --help          도움말 표시
-    -v, --version       버전 정보 표시
-  
-  서브커맨드:
-    generate            Google Sheets → 스텁 생성
-    update              JSON 결과 → Google Sheets 업데이트
-  
-  예시:
-    # 스텁 코드 생성
-    e2e-autogen generate
-  
-    # 결과 업데이트
-    e2e-autogen update 
-  `);
+┌─────────────────────────────────────────────────────────────────┐
+│                         E2E AutoGen                            │
+│                Google Sheets 기반 E2E 테스트 자동화            │
+└─────────────────────────────────────────────────────────────────┘
+
+📋 사용법:
+  e2e-autogen [명령어] [옵션]
+
+🚀 명령어:
+  generate    Google Sheets에서 스텁 코드 생성
+  update      테스트 결과를 Google Sheets에 업데이트
+
+🔧 옵션:
+  -h, --help     도움말 표시
+  -v, --version  버전 정보 표시
+
+📋 설정 파일:
+  프로젝트 루트에 'e2e-autogen.config.ts' 파일이 필요합니다.
+
+  예시 설정:
+  export default {
+    sheetsUrl: "https://docs.google.com/spreadsheets/d/...",
+    framework: "playwright", // 또는 "detox"
+    stubOutputFolder: "./tests/e2e",
+    jsonReporterFile: "./test-results.json",
+    credentialsFile: "./credentials.json",
+    googleSheetColumns: {
+      scenarioId: "A",
+      scenarioDescription: "B", 
+      uiPath: "C",
+      when: "D",
+      then: "E",
+      testId: "F",
+      tag: "G",
+      comment: "H"
+    }
+  };
+
+💡 사용 예시:
+  # 스텁 코드 생성
+  e2e-autogen generate
+
+  # 테스트 결과 업데이트  
+  e2e-autogen update
+
+📚 자세한 문서: https://github.com/dhlab-org/e2e-autogen
+    `);
   }
 
   #showVersion(): void {
@@ -76,12 +99,18 @@ class CliApplication implements CliApplicationContract {
   }
 
   async #generateStub() {
-    const { sheetsUrl, credentialsFile, stubOutputFolder, framework } =
-      this.#command.optionsOf("GENERATE");
+    const {
+      sheetsUrl,
+      credentialsFile,
+      stubOutputFolder,
+      framework,
+      googleSheetColumns,
+    } = this.#command.optionsOf("GENERATE");
 
     const googleSpreadsheets = await authorizedGoogleSpreadsheets(
       sheetsUrl,
-      credentialsFile
+      credentialsFile,
+      googleSheetColumns
     );
 
     const testScribe = new TestScribe(googleSpreadsheets, stubOutputFolder);
@@ -89,12 +118,13 @@ class CliApplication implements CliApplicationContract {
   }
 
   async #logResults() {
-    const { sheetsUrl, jsonReporterFile, credentialsFile } =
+    const { sheetsUrl, jsonReporterFile, credentialsFile, googleSheetColumns } =
       this.#command.optionsOf("UPDATE");
 
     const googleSpreadsheets = await authorizedGoogleSpreadsheets(
       sheetsUrl,
-      credentialsFile
+      credentialsFile,
+      googleSheetColumns
     );
 
     const testRegistry = new TestRegistry(jsonReporterFile, googleSpreadsheets);

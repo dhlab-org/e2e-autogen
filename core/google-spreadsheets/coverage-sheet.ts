@@ -15,8 +15,13 @@ type CoverageSheetContract = SpreadsheetSheetContract & {
 };
 
 class CoverageSheet extends SpreadsheetSheet implements CoverageSheetContract {
-  constructor(spreadsheetId: string, gid: string, sheets: sheets_v4.Sheets) {
-    super(spreadsheetId, gid, sheets);
+  constructor(
+    spreadsheetId: string,
+    gid: string,
+    sheets: sheets_v4.Sheets,
+    rawSheets?: () => Promise<sheets_v4.Schema$Sheet[]>
+  ) {
+    super(spreadsheetId, gid, sheets, rawSheets);
   }
 
   async updateCoverage({

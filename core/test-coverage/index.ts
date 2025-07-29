@@ -176,10 +176,10 @@ class TestCoverage implements TestCoverageContract {
 export { TestCoverage };
 
 export type {
-  TTestCoverageResults,
+  TExecutionSummary,
   TOverallSummary,
   TSuiteSummary,
-  TExecutionSummary,
+  TTestCoverageResults,
 };
 
 type TTestSuiteId = string;
