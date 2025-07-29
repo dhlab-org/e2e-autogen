@@ -1,6 +1,6 @@
-import { DEFAULT_DIRECTORIES } from "../config";
 import { match } from "ts-pattern";
 import { TFlag, TGenerateOptions, TSubCommand, TUpdateOptions } from "./types";
+import { TE2EAutogenConfig } from "../config";
 
 type CommandContract = {
   type: "FLAG" | "SUB_COMMAND";
@@ -12,9 +12,11 @@ type CommandContract = {
 
 class Command implements CommandContract {
   readonly #args: string[];
+  readonly #config: TE2EAutogenConfig;
 
-  constructor(args: string[]) {
+  constructor(args: string[], config: TE2EAutogenConfig) {
     this.#args = args;
+    this.#config = config;
   }
 
   get type(): TCommand["type"] {
@@ -67,78 +69,21 @@ class Command implements CommandContract {
   optionsOf(subCommand: TSubCommand): TGenerateOptions | TUpdateOptions {
     return match(subCommand)
       .with("GENERATE", () => ({
-        sheetsUrl: this.#sheetsUrl(),
-        credentialsPath: this.#credentialsPath(),
-        generatedStubDir: this.#generatedStubDir(),
-        framework: this.#framework(),
+        sheetsUrl: this.#config.sheetsUrl,
+        credentialsFile: this.#config.credentialsFile,
+        stubOutputFolder: this.#config.stubOutputFolder,
+        framework: this.#config.framework,
       }))
       .with("UPDATE", () => ({
-        sheetsUrl: this.#sheetsUrl(),
-        credentialsPath: this.#credentialsPath(),
-        jsonReporterPath: this.#jsonReporterPath(),
+        sheetsUrl: this.#config.sheetsUrl,
+        credentialsFile: this.#config.credentialsFile,
+        jsonReporterFile: this.#config.jsonReporterFile,
       }))
       .exhaustive();
   }
 
   #hasFlag(flag: string): boolean {
     return this.#args.includes(flag);
-  }
-
-  #sheetsUrl(): string {
-    const sheetsIndex = this.#indexOf("--sheets");
-
-    if (sheetsIndex !== -1) {
-      return this.#args[sheetsIndex + 1] || "";
-    }
-
-    throw new Error("sheets url 옵션이 필요합니다.");
-  }
-
-  #credentialsPath(): string {
-    const credentialsIndex = this.#indexOf("--credentials");
-
-    if (credentialsIndex !== -1) {
-      return (
-        this.#args[credentialsIndex + 1] || DEFAULT_DIRECTORIES.credentials
-      );
-    }
-
-    return DEFAULT_DIRECTORIES.credentials;
-  }
-
-  #generatedStubDir(): string {
-    const outputIndex = this.#indexOf("--output");
-
-    if (outputIndex !== -1) {
-      return this.#args[outputIndex + 1] || DEFAULT_DIRECTORIES.generatedStub;
-    }
-
-    return DEFAULT_DIRECTORIES.generatedStub;
-  }
-
-  #jsonReporterPath(): string {
-    const reporterIndex = this.#indexOf("--reporter");
-
-    if (reporterIndex !== -1) {
-      return this.#args[reporterIndex + 1] || "";
-    }
-
-    throw new Error("json reporter 옵션이 필요합니다.");
-  }
-
-  #framework(): TGenerateOptions["framework"] {
-    const frameworkIndex = this.#indexOf("--framework");
-
-    if (frameworkIndex !== -1) {
-      return (this.#args[frameworkIndex + 1] || "playwright") as
-        | TGenerateOptions["framework"];
-    }
-
-    return "playwright";
-  }
-
-  #indexOf(option: string): number {
-    return this.#args.findIndex((arg) => arg === option);
   }
 }
 
