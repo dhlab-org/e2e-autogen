@@ -3,10 +3,10 @@
   "bin": "dist/core/cli.cjs",
   "exports": {
     ".": {
-      "import": "./dist/core/define-config.js",
-      "types": "./dist/core/define-config.d.ts",
-      "require": "./dist/core/define-config.cjs",
-      "default": "./dist/core/define-config.cjs"
+      "import": "./dist/config/define-config.js",
+      "types": "./dist/config/define-config.d.ts",
+      "require": "./dist/config/define-config.cjs",
+      "default": "./dist/config/define-config.cjs"
     },
     "./playwright/reporter": {
       "require": "./dist/packages/playwright/reporter.cjs",
@@ -22,7 +22,7 @@
     "LICENSE"
   ],
   "scripts": {
-    "build": "rollup -c && tsc --project tsconfig.declaration.json",
+    "build": "rollup -c",
     "dev": "tsx core/cli.ts",
     "test": "vitest",
     "test:ui": "vitest --ui"
