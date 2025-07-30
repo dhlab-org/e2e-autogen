@@ -1,4 +1,4 @@
-import { TE2EAutogenConfig } from "../config";
+import { TE2EAutogenConfig } from "@config/types";
 
 export type TFlag = "HELP" | "VERSION";
 export type TSubCommand = "GENERATE" | "UPDATE";

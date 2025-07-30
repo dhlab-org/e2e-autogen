@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
+import { loadUserConfig } from "@config/load-user-config";
 import { CliApplication } from "./cli-application";
-import { loadUserConfig } from "./config";
 
 const main = async () => {
   const args = process.argv.slice(2);

@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { TestCoverage } from "../core/test-coverage";
-import { TResultStatus } from "../core/config";
+import { TestCoverage } from "@core/test-coverage";
+import { TResultStatus } from "@core/test-registry";
 
 type TTestSuiteId = string;
 type TTestCaseId = string;

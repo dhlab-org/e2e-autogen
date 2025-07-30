@@ -14,8 +14,14 @@
     "declarationMap": true,
     "sourceMap": true,
     "moduleResolution": "NodeNext",
-    "allowSyntheticDefaultImports": true
+    "allowSyntheticDefaultImports": true,
+    "baseUrl": ".",
+    "paths": {
+      "@config/*": ["./config/*"],
+      "@core/*": ["./core/*"],
+      "@packages/*": ["./packages/*"]
+    }
   },
-  "include": ["core/**/*", "packages/**/*"],
+  "include": ["core/**/*", "packages/**/*", "config/**/*", "test/**/*"],
   "exclude": ["node_modules", "dist", ".yarn"]
 }

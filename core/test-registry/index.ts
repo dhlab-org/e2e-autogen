@@ -1,5 +1,5 @@
 import * as fs from "fs-extra";
-import { TResultStatus } from "../config";
+import { TResultStatus } from "./types";
 import { GoogleSpreadsheetsContract } from "../google-spreadsheets";
 import { ResultsMatrix } from "./results-matrix";
 import { TTestCaseId, TTestSuiteId } from "./types";
@@ -151,4 +151,4 @@ class TestRegistry implements TestRegistryContract {
   }
 }
 
-export { TestRegistry, type TestRegistryContract };
+export { TestRegistry, type TestRegistryContract, type TResultStatus };
