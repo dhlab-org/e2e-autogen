@@ -3,7 +3,13 @@
   "compilerOptions": {
     "declaration": false,
     "declarationMap": false,
-    "outDir": "./dist"
+    "outDir": "./dist",
+    "baseUrl": ".",
+    "paths": {
+      "@config/*": ["./config/*"],
+      "@core/*": ["./core/*"],
+      "@packages/*": ["./packages/*"]
+    }
   },
   "include": ["core/cli.ts"],
   "exclude": ["node_modules", "dist", ".yarn"]

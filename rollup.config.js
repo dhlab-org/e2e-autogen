@@ -3,12 +3,15 @@ const commonjs = require("@rollup/plugin-commonjs");
 const typescript = require("@rollup/plugin-typescript");
 const json = require("@rollup/plugin-json");
 const alias = require("@rollup/plugin-alias");
+const dts = require("rollup-plugin-dts").default;
+
+const path = require("path");
 
 const aliasConfig = {
   entries: [
-    { find: "@config", replacement: "./config" },
-    { find: "@core", replacement: "./core" },
-    { find: "@packages", replacement: "./packages" },
+    { find: "@config", replacement: path.resolve(__dirname, "./config") },
+    { find: "@core", replacement: path.resolve(__dirname, "./core") },
+    { find: "@packages", replacement: path.resolve(__dirname, "./packages") },
   ],
 };
 
@@ -26,6 +29,7 @@ module.exports = [
       alias(aliasConfig),
       resolve({
         preferBuiltins: true,
+        extensions: [".js", ".ts", ".json"],
       }),
       commonjs(),
       typescript({
@@ -48,7 +52,10 @@ module.exports = [
     ],
     plugins: [
       alias(aliasConfig),
-      resolve({ preferBuiltins: true }),
+      resolve({
+        preferBuiltins: true,
+        extensions: [".js", ".ts", ".json"],
+      }),
       commonjs(),
       typescript({
         tsconfig: "./tsconfig.json",
@@ -59,72 +66,98 @@ module.exports = [
   },
   // Playwright 패키지 빌드
   {
-    input: "packages/playwright/reporter.ts",
-    output: {
-      file: "dist/packages/playwright/reporter.cjs",
-      format: "cjs",
-    },
+    input: ["packages/playwright/reporter.ts", "packages/playwright/index.ts"],
+    output: [
+      {
+        dir: "dist/packages",
+        format: "cjs",
+        entryFileNames: "[name].cjs",
+        preserveModules: true,
+        preserveModulesRoot: "packages",
+      },
+      {
+        dir: "dist/packages",
+        format: "esm",
+        entryFileNames: "[name].js",
+        preserveModules: true,
+        preserveModulesRoot: "packages",
+      },
+    ],
     plugins: [
       alias(aliasConfig),
-      resolve({ preferBuiltins: true }),
+      resolve({
+        preferBuiltins: true,
+        extensions: [".js", ".ts", ".json"],
+      }),
       commonjs(),
       typescript({
         tsconfig: "./tsconfig.json",
         declaration: false,
-        outDir: "dist/packages/playwright",
+        outDir: "dist/packages",
+      }),
+    ],
+  },
+  // 타입 정의 파일 생성
+  {
+    input: "config/define-config.ts",
+    output: {
+      file: "dist/config/define-config.d.ts",
+      format: "esm",
+    },
+    plugins: [
+      alias(aliasConfig),
+      dts({
+        compilerOptions: {
+          baseUrl: ".",
+          paths: {
+            "@config/*": ["./config/*"],
+            "@core/*": ["./core/*"],
+            "@packages/*": ["./packages/*"],
+          },
+        },
       }),
     ],
   },
   {
     input: "packages/playwright/index.ts",
-    output: [
-      {
-        file: "dist/packages/playwright/index.js",
-        format: "esm",
-      },
-      {
-        file: "dist/packages/playwright/index.cjs",
-        format: "cjs",
-      },
-    ],
+    output: {
+      file: "dist/packages/playwright/index.d.ts",
+      format: "esm",
+    },
     external: ["@playwright/test", "@msw/playwright"],
     plugins: [
-      json(),
       alias(aliasConfig),
-      resolve({ extensions: [".js", ".ts"] }),
-      commonjs(),
-      typescript({
-        tsconfig: "./tsconfig.json",
-        declaration: true,
-        declarationDir: "dist/packages/playwright",
-        outDir: "dist/packages/playwright",
+      dts({
+        compilerOptions: {
+          baseUrl: ".",
+          paths: {
+            "@config/*": ["./config/*"],
+            "@core/*": ["./core/*"],
+            "@packages/*": ["./packages/*"],
+          },
+        },
       }),
     ],
   },
-  // // Detox 패키지 빌드
-  // {
-  //   input: "packages/detox/index.ts",
-  //   output: [
-  //     {
-  //       file: "dist/packages/detox/index.js",
-  //       format: "esm",
-  //     },
-  //     {
-  //       file: "dist/packages/detox/index.cjs",
-  //       format: "cjs",
-  //     },
-  //   ],
-  //   external: ["detox"],
-  //   plugins: [
-  //     json(),
-  //     resolve({ extensions: [".js", ".ts"] }),
-  //     commonjs(),
-  //     typescript({
-  //       tsconfig: "./tsconfig.json",
-  //       declaration: true,
-  //       declarationDir: "dist/packages/detox",
-  //       outDir: "dist/packages/detox",
-  //     }),
-  //   ],
-  // },
+  {
+    input: "packages/playwright/reporter.ts",
+    output: {
+      file: "dist/packages/playwright/reporter.d.ts",
+      format: "esm",
+    },
+    external: ["@playwright/test", "@msw/playwright"],
+    plugins: [
+      alias(aliasConfig),
+      dts({
+        compilerOptions: {
+          baseUrl: ".",
+          paths: {
+            "@config/*": ["./config/*"],
+            "@core/*": ["./core/*"],
+            "@packages/*": ["./packages/*"],
+          },
+        },
+      }),
+    ],
+  },
 ];
