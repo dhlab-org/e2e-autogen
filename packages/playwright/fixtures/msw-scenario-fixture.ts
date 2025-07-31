@@ -1,4 +1,4 @@
-import { loadUserConfig } from "@config/load-user-config";
+import { loadUserConfig } from "../../../config";
 import { createNetworkFixture, type NetworkFixture } from "@msw/playwright";
 import { test as base, Page } from "@playwright/test";
 import path from "path";

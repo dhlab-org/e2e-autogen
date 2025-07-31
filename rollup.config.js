@@ -2,160 +2,121 @@ const resolve = require("@rollup/plugin-node-resolve");
 const commonjs = require("@rollup/plugin-commonjs");
 const typescript = require("@rollup/plugin-typescript");
 const json = require("@rollup/plugin-json");
-const alias = require("@rollup/plugin-alias");
 const dts = require("rollup-plugin-dts").default;
-
-const path = require("path");
-
-const aliasConfig = {
-  entries: [
-    { find: "@config", replacement: path.resolve(__dirname, "./config") },
-    { find: "@core", replacement: path.resolve(__dirname, "./core") },
-    { find: "@packages", replacement: path.resolve(__dirname, "./packages") },
-  ],
-};
+const glob = require("fast-glob");
 
 module.exports = [
-  // CLI 도구 빌드
+  // config 폴더 빌드 (ESM + CJS)
   {
-    input: "core/cli.ts",
-    output: {
-      file: "dist/core/cli.cjs",
-      format: "cjs",
-    },
-    external: ["fs", "path", "child_process", "util", "url"],
+    input: glob.sync("config/**/*.ts"),
+    output: [
+      {
+        dir: "dist/config",
+        format: "esm",
+        preserveModules: true,
+        entryFileNames: "[name].js",
+      },
+      {
+        dir: "dist/config",
+        format: "cjs",
+        preserveModules: true,
+        entryFileNames: "[name].cjs",
+      },
+    ],
+    external: ["fs", "path", "util", "url"],
+    inlineDynamicImports: true,
     plugins: [
       json(),
-      alias(aliasConfig),
-      resolve({
-        preferBuiltins: true,
-        extensions: [".js", ".ts", ".json"],
-      }),
+      typescript({ tsconfig: "./tsconfig.json", declaration: false }),
+      resolve({ preferBuiltins: true, extensions: [".js", ".ts", ".json"] }),
       commonjs(),
-      typescript({
-        tsconfig: "./tsconfig.cli.json",
-      }),
     ],
   },
-  // define-config.ts 빌드
+
+  // core 폴더 빌드 (ESM + CJS)
   {
-    input: "config/define-config.ts",
+    input: glob.sync("core/**/*.ts"),
     output: [
       {
-        file: "dist/config/define-config.cjs",
-        format: "cjs",
-      },
-      {
-        file: "dist/config/define-config.js",
+        dir: "dist/core",
         format: "esm",
-      },
-    ],
-    plugins: [
-      alias(aliasConfig),
-      resolve({
-        preferBuiltins: true,
-        extensions: [".js", ".ts", ".json"],
-      }),
-      commonjs(),
-      typescript({
-        tsconfig: "./tsconfig.json",
-        declaration: false,
-        outDir: "dist/config",
-      }),
-    ],
-  },
-  // Playwright 패키지 빌드
-  {
-    input: ["packages/playwright/reporter.ts", "packages/playwright/index.ts"],
-    output: [
-      {
-        dir: "dist/packages",
-        format: "cjs",
-        entryFileNames: "[name].cjs",
         preserveModules: true,
-        preserveModulesRoot: "packages",
-      },
-      {
-        dir: "dist/packages",
-        format: "esm",
         entryFileNames: "[name].js",
+      },
+      {
+        dir: "dist/core",
+        format: "cjs",
         preserveModules: true,
-        preserveModulesRoot: "packages",
+        entryFileNames: "[name].cjs",
       },
     ],
+    external: ["fs", "path", "child_process", "util", "url"],
+    inlineDynamicImports: true,
     plugins: [
-      alias(aliasConfig),
-      resolve({
-        preferBuiltins: true,
-        extensions: [".js", ".ts", ".json"],
-      }),
+      json(),
+      typescript({ tsconfig: "./tsconfig.json", declaration: false }),
+      resolve({ preferBuiltins: true, extensions: [".js", ".ts", ".json"] }),
       commonjs(),
-      typescript({
-        tsconfig: "./tsconfig.json",
-        declaration: false,
-        outDir: "dist/packages",
-      }),
     ],
   },
-  // 타입 정의 파일 생성
+
+  // packages 폴더 빌드 (ESM + CJS)
   {
-    input: "config/define-config.ts",
-    output: {
-      file: "dist/config/define-config.d.ts",
-      format: "esm",
-    },
+    input: glob.sync("packages/playwright/**/*.ts"),
+    output: [
+      {
+        dir: "dist/packages/playwright",
+        format: "esm",
+        preserveModules: true,
+        entryFileNames: "[name].js",
+      },
+      {
+        dir: "dist/packages/playwright",
+        format: "cjs",
+        preserveModules: true,
+        entryFileNames: "[name].cjs",
+      },
+    ],
+    external: [
+      "@playwright/test",
+      "@msw/playwright",
+      "fs-extra",
+      "fs",
+      "path",
+      "util",
+      "url",
+      "child_process",
+    ],
+    inlineDynamicImports: true,
     plugins: [
-      alias(aliasConfig),
+      json(),
+      typescript({ tsconfig: "./tsconfig.json", declaration: false }),
+      resolve({ preferBuiltins: true, extensions: [".js", ".ts", ".json"] }),
+      commonjs(),
+    ],
+  },
+
+  // 타입 정의: config
+  {
+    input: "config/index.ts",
+    output: { file: "dist/config/index.d.ts", format: "esm" },
+    plugins: [
       dts({
         compilerOptions: {
           baseUrl: ".",
-          paths: {
-            "@config/*": ["./config/*"],
-            "@core/*": ["./core/*"],
-            "@packages/*": ["./packages/*"],
-          },
         },
       }),
     ],
   },
+
+  // 타입 정의: packages
   {
     input: "packages/playwright/index.ts",
-    output: {
-      file: "dist/packages/playwright/index.d.ts",
-      format: "esm",
-    },
-    external: ["@playwright/test", "@msw/playwright"],
+    output: { file: "dist/packages/playwright/index.d.ts", format: "esm" },
     plugins: [
-      alias(aliasConfig),
       dts({
         compilerOptions: {
           baseUrl: ".",
-          paths: {
-            "@config/*": ["./config/*"],
-            "@core/*": ["./core/*"],
-            "@packages/*": ["./packages/*"],
-          },
-        },
-      }),
-    ],
-  },
-  {
-    input: "packages/playwright/reporter.ts",
-    output: {
-      file: "dist/packages/playwright/reporter.d.ts",
-      format: "esm",
-    },
-    external: ["@playwright/test", "@msw/playwright"],
-    plugins: [
-      alias(aliasConfig),
-      dts({
-        compilerOptions: {
-          baseUrl: ".",
-          paths: {
-            "@config/*": ["./config/*"],
-            "@core/*": ["./core/*"],
-            "@packages/*": ["./packages/*"],
-          },
         },
       }),
     ],

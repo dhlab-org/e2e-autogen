@@ -3,22 +3,20 @@
   "bin": "dist/core/cli.cjs",
   "exports": {
     ".": {
-      "import": "./dist/config/define-config.js",
-      "types": "./dist/config/define-config.d.ts",
-      "require": "./dist/config/define-config.cjs",
-      "default": "./dist/config/define-config.cjs"
-    },
-    "./playwright/reporter": {
-      "import": "./dist/packages/playwright/reporter.js",
-      "types": "./dist/packages/playwright/reporter.d.ts",
-      "require": "./dist/packages/playwright/reporter.cjs",
-      "default": "./dist/packages/playwright/reporter.cjs"
+      "import": "./dist/config/index.js",
+      "types": "./dist/config/index.d.ts",
+      "require": "./dist/config/index.cjs",
+      "default": "./dist/config/index.cjs"
     },
     "./playwright": {
       "import": "./dist/packages/playwright/index.js",
-      "types": "./dist/packages/playwright/index.d.ts",
       "require": "./dist/packages/playwright/index.cjs",
+      "types": "./dist/packages/playwright/index.d.ts",
       "default": "./dist/packages/playwright/index.cjs"
+    },
+    "./playwright/reporter": {
+      "require": "./dist/packages/playwright/reporter.cjs",
+      "types": "./dist/packages/playwright/reporter.d.ts"
     }
   },
   "version": "0.1.3",
@@ -46,7 +44,6 @@
   "devDependencies": {
     "@msw/playwright": "^0.4.2",
     "@playwright/test": "^1.52.0",
-    "@rollup/plugin-alias": "^5.1.1",
     "@rollup/plugin-commonjs": "^28.0.6",
     "@rollup/plugin-json": "^6.1.0",
     "@rollup/plugin-node-resolve": "^16.0.1",
@@ -54,6 +51,7 @@
     "@types/fs-extra": "^11.0.1",
     "@types/node": "^20.8.0",
     "@vitest/ui": "^3.2.4",
+    "fast-glob": "^3.3.3",
     "rollup": "^4.44.0",
     "rollup-plugin-dts": "^6.2.1",
     "ts-pattern": "^5.7.1",

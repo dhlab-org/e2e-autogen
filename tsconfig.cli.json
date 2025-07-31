@@ -1,15 +1,11 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
+    "module": "NodeNext",
     "declaration": false,
     "declarationMap": false,
     "outDir": "./dist",
-    "baseUrl": ".",
-    "paths": {
-      "@config/*": ["./config/*"],
-      "@core/*": ["./core/*"],
-      "@packages/*": ["./packages/*"]
-    }
+    "baseUrl": "."
   },
   "include": ["core/cli.ts"],
   "exclude": ["node_modules", "dist", ".yarn"]

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { loadUserConfig } from "@config/load-user-config";
+import { loadUserConfig } from "../config";
 import { CliApplication } from "./cli-application";
 
 const main = async () => {
