@@ -3,15 +3,15 @@ import { TResultStatus } from "./types";
 import { GoogleSpreadsheetsContract } from "../google-spreadsheets";
 import { ResultsMatrix } from "./results-matrix";
 import { TTestCaseId, TTestSuiteId } from "./types";
+import chalk from "chalk";
 
 type TestRegistryContract = {
   logResults(
-    resultsPerSuite: Map<TTestSuiteId, Map<TTestCaseId, TResultStatus>>,
-    googleSpreadsheets: GoogleSpreadsheetsContract
+    resultsPerSuite: Map<TTestSuiteId, Map<TTestCaseId, TResultStatus>>
   ): Promise<void>;
-  resultsPerSuite(
-    googleSpreadsheets?: GoogleSpreadsheetsContract
-  ): Promise<Map<TTestSuiteId, Map<TTestCaseId, TResultStatus>>>;
+  resultsPerSuite(): Promise<
+    Map<TTestSuiteId, Map<TTestCaseId, TResultStatus>>
+  >;
 };
 
 class TestRegistry implements TestRegistryContract {
@@ -36,13 +36,16 @@ class TestRegistry implements TestRegistryContract {
     for (const [suiteId, resultPerTestId] of resultsPerSuite) {
       const meta = suitesMeta.get(suiteId);
       if (!meta) {
-        console.warn(`⚠️ '[${suiteId}]' 시트를 찾지 못해 스킵합니다.`);
+        console.warn(`⚠️  '[${suiteId}]' 시트를 찾지 못해 스킵합니다.`);
         continue;
       }
 
       const sheet = this.#googleSpreadsheets.testSuiteSheet(meta.gid);
       await this.#writeSuiteResults(sheet, resultPerTestId);
     }
+
+    console.log(chalk.green("🎉 모든 테스트 결과 업데이트가 완료되었습니다!"));
+    console.log(chalk.blue(`🔗 ${this.#googleSpreadsheets.fullUrl}`));
   }
 
   async resultsPerSuite(): Promise<

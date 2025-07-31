@@ -23,7 +23,7 @@ module.exports = [
       file: "dist/core/cli.cjs",
       format: "cjs",
     },
-    external: [],
+    external: ["fs", "path", "child_process", "util", "url"],
     plugins: [
       json(),
       alias(aliasConfig),
