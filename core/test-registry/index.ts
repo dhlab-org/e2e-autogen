@@ -1,5 +1,5 @@
 import * as fs from "fs-extra";
-import { TResultStatus } from "./types";
+import { TResultStatus, TResultWithDescription } from "./types";
 import { GoogleSpreadsheetsContract } from "../google-spreadsheets";
 import { ResultsMatrix } from "./results-matrix";
 import { TTestCaseId, TTestSuiteId } from "./types";
@@ -7,10 +7,10 @@ import chalk from "chalk";
 
 type TestRegistryContract = {
   logResults(
-    resultsPerSuite: Map<TTestSuiteId, Map<TTestCaseId, TResultStatus>>
+    resultsPerSuite: Map<TTestSuiteId, Map<TTestCaseId, TResultWithDescription>>
   ): Promise<void>;
   resultsPerSuite(): Promise<
-    Map<TTestSuiteId, Map<TTestCaseId, TResultStatus>>
+    Map<TTestSuiteId, Map<TTestCaseId, TResultWithDescription>>
   >;
 };
 
@@ -29,7 +29,7 @@ class TestRegistry implements TestRegistryContract {
   }
 
   async logResults(
-    resultsPerSuite: Map<TTestSuiteId, Map<TTestCaseId, TResultStatus>>
+    resultsPerSuite: Map<TTestSuiteId, Map<TTestCaseId, TResultWithDescription>>
   ): Promise<void> {
     const suitesMeta = await this.#googleSpreadsheets.suitesMeta();
 
@@ -49,7 +49,7 @@ class TestRegistry implements TestRegistryContract {
   }
 
   async resultsPerSuite(): Promise<
-    Map<TTestSuiteId, Map<TTestCaseId, TResultStatus>>
+    Map<TTestSuiteId, Map<TTestCaseId, TResultWithDescription>>
   > {
     const json = await this.#json();
     const base = this.#matrix.resultsPerSuite(json);
@@ -71,7 +71,7 @@ class TestRegistry implements TestRegistryContract {
 
       tcIdsInSheet.forEach((tcId) => {
         if (!bucket.has(tcId)) {
-          bucket.set(tcId, "not_executed");
+          bucket.set(tcId, { status: "not_executed" });
         }
       });
 
@@ -84,7 +84,7 @@ class TestRegistry implements TestRegistryContract {
   /** 시트 한 개에 대한 결과 기록 전체 프로세스 */
   async #writeSuiteResults(
     sheet: ReturnType<GoogleSpreadsheetsContract["testSuiteSheet"]>,
-    resultPerTestId: Map<string, TResultStatus>
+    resultPerTestId: Map<string, TResultWithDescription>
   ) {
     if (resultPerTestId.size === 0) return;
 
@@ -95,8 +95,8 @@ class TestRegistry implements TestRegistryContract {
     // (1) 결과값 배열 생성
     const resultValues: string[][] = dataRows.map((row: any[]) => {
       const testId: string = row[sheet.columnNumberOf("testId")] ?? "";
-      const status = resultPerTestId.get(testId);
-      return [status ? this.#matrix.labelOf(status) : ""];
+      const result = resultPerTestId.get(testId);
+      return [result ? this.#matrix.labelOf(result.status) : ""];
     });
 
     // (2) 헤더 + 결과 합치기 후 작성
@@ -123,6 +123,31 @@ class TestRegistry implements TestRegistryContract {
       rows.length,
       colIdx
     );
+
+    // (3) manual_only에 대한 description을 comment로 추가
+    await this.#addManualOnlyComments(sheet, resultPerTestId, colIdx);
+  }
+
+  /** manual_only에 대한 description을 comment로 추가 */
+  async #addManualOnlyComments(
+    sheet: ReturnType<GoogleSpreadsheetsContract["testSuiteSheet"]>,
+    resultPerTestId: Map<string, TResultWithDescription>,
+    colIdx: number
+  ) {
+    const rows = await sheet.rows();
+    const testIdCol = sheet.columnNumberOf("testId");
+
+    for (let rowIdx = 2; rowIdx < rows.length; rowIdx++) {
+      // 헤더 2줄 제외
+      const testId = rows[rowIdx][testIdCol] as string;
+      if (!testId) continue;
+
+      const result = resultPerTestId.get(testId);
+      if (result?.status === "manual_only" && result.description) {
+        // comment 추가 (rowIdx는 0-based, 시트는 1-based이므로 +1)
+        await sheet.addComment(rowIdx + 1, colIdx + 1, result.description);
+      }
+    }
   }
 
   /** 결과 컬럼 인덱스(0-base) 계산 */
@@ -154,4 +179,5 @@ class TestRegistry implements TestRegistryContract {
   }
 }
 
-export { TestRegistry, type TestRegistryContract, type TResultStatus };
+export { TestRegistry };
+export * from "./types";

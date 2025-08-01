@@ -3,6 +3,7 @@ import { sheets_v4 } from "googleapis";
 type SpreadsheetSheetContract = {
   gid: string;
   rows(): Promise<any[][]>;
+  addComment(row: number, col: number, comment: string): Promise<void>;
 };
 
 class SpreadsheetSheet implements SpreadsheetSheetContract {
@@ -37,6 +38,53 @@ class SpreadsheetSheet implements SpreadsheetSheetContract {
     });
 
     return res.data.values ?? [];
+  }
+
+  /**
+   * 지정된 셀에 comment를 추가합니다.
+   * @param row 행 번호 (1-based)
+   * @param col 열 번호 (1-based)
+   * @param comment 추가할 comment 내용
+   */
+  async addComment(row: number, col: number, comment: string): Promise<void> {
+    if (!comment.trim()) return;
+
+    const sheetName = await this.sheetName();
+    const columnLetter = this.#numberToColumnLetter(col);
+    const range = `'${sheetName}'!${columnLetter}${row}`;
+
+    try {
+      await this.sheets.spreadsheets.batchUpdate({
+        spreadsheetId: this.spreadsheetId,
+        requestBody: {
+          requests: [
+            {
+              updateCells: {
+                range: {
+                  sheetId: parseInt(this.#gid),
+                  startRowIndex: row - 1,
+                  endRowIndex: row,
+                  startColumnIndex: col - 1,
+                  endColumnIndex: col,
+                },
+                rows: [
+                  {
+                    values: [
+                      {
+                        note: comment,
+                      },
+                    ],
+                  },
+                ],
+                fields: "note",
+              },
+            },
+          ],
+        },
+      });
+    } catch (error) {
+      console.warn(`⚠️ Failed to add comment to ${range}: ${error}`);
+    }
   }
 
   /**
@@ -241,14 +289,17 @@ class SpreadsheetSheet implements SpreadsheetSheetContract {
     this.#cachedColumnCount = null;
   }
 
+  /**
+   * 숫자를 컬럼 문자로 변환 (1 -> A, 2 -> B, 27 -> AA, etc.)
+   */
   #numberToColumnLetter(num: number): string {
-    if (num <= 0) return "";
-
-    const adjusted = num - 1;
-    const char = String.fromCharCode(65 + (adjusted % 26));
-    const remaining = Math.floor(adjusted / 26);
-
-    return remaining > 0 ? this.#numberToColumnLetter(remaining) + char : char;
+    let result = "";
+    while (num > 0) {
+      num--;
+      result = String.fromCharCode(65 + (num % 26)) + result;
+      num = Math.floor(num / 26);
+    }
+    return result;
   }
 
   #columnLetterToNumber(columnLetter: string): number {

@@ -1,16 +1,19 @@
-import { TResultStatus } from "./types";
+import { TResultStatus, TResultWithDescription } from "./types";
 import { TTestCaseId, TTestSuiteId } from "./types";
 
 type ResultsMatrixContract = {
   resultsPerSuite(
     playwrightJson: any
-  ): Map<TTestSuiteId, Map<TTestCaseId, TResultStatus>>;
+  ): Map<TTestSuiteId, Map<TTestCaseId, TResultWithDescription>>;
   labelOf(result: TResultStatus): string;
 };
 
 class ResultsMatrix implements ResultsMatrixContract {
   resultsPerSuite(playwrightJson: any) {
-    const suiteMap = new Map<TTestSuiteId, Map<TTestCaseId, TResultStatus>>();
+    const suiteMap = new Map<
+      TTestSuiteId,
+      Map<TTestCaseId, TResultWithDescription>
+    >();
 
     for (const suite of playwrightJson.suites ?? []) {
       for (const spec of suite.specs ?? []) {
@@ -25,8 +28,15 @@ class ResultsMatrix implements ResultsMatrixContract {
             const suiteId = testId.split(".")[0];
 
             const bucket = suiteMap.get(suiteId) ?? new Map();
-            // 동일 testId 가 두 번 이상 나오지는 않는 구조라 바로 매핑
-            bucket.set(testId, status);
+
+            // manual_only의 경우 description 정보도 함께 저장
+            const resultWithDescription: TResultWithDescription = {
+              status,
+              description:
+                Array.isArray(id) && id.length > 1 ? id[1] : undefined,
+            };
+
+            bucket.set(testId, resultWithDescription);
             suiteMap.set(suiteId, bucket);
           }
         };

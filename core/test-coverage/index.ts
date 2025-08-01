@@ -1,4 +1,9 @@
-import { TResultStatus } from "../test-registry";
+import {
+  TResultStatus,
+  TResultWithDescription,
+  TTestSuiteId,
+  TTestCaseId,
+} from "../test-registry";
 import { GoogleSpreadsheetsContract } from "../google-spreadsheets";
 
 type TestCoverageContract = {
@@ -92,23 +97,26 @@ class TestCoverage implements TestCoverageContract {
     };
   }
 
-  #calculateSuiteStats(caseMap: Map<TTestCaseId, TResultStatus>) {
+  #calculateSuiteStats(caseMap: Map<TTestCaseId, TResultWithDescription>) {
     const scenarios = new Set<string>();
     let executedCount = 0;
     let passCount = 0;
     const statusCounts = this.#emptyStatusCount();
 
-    caseMap.forEach((status, testId) => {
-      scenarios.add(this.#scenarioIdOf(testId));
-      statusCounts[status] += 1;
+    for (const [testCaseId, result] of caseMap) {
+      const status = result.status;
+      const scenarioId = this.#scenarioIdOf(testCaseId);
+      scenarios.add(scenarioId);
+
+      statusCounts[status]++;
 
       if (this.#isExecuted(status)) {
-        executedCount += 1;
+        executedCount++;
         if (this.#isSuccess(status)) {
-          passCount += 1;
+          passCount++;
         }
       }
-    });
+    }
 
     return {
       scenarioCount: scenarios.size,
@@ -180,11 +188,13 @@ export type {
   TOverallSummary,
   TSuiteSummary,
   TTestCoverageResults,
+  TResultsPerSuite,
 };
 
-type TTestSuiteId = string;
-type TTestCaseId = string;
-type TResultsPerSuite = Map<TTestSuiteId, Map<TTestCaseId, TResultStatus>>;
+type TResultsPerSuite = Map<
+  TTestSuiteId,
+  Map<TTestCaseId, TResultWithDescription>
+>;
 type TStatusCount = Record<TResultStatus, number>;
 
 type TOverallSummary = {

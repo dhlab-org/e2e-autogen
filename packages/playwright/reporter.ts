@@ -1,4 +1,4 @@
-import {
+import type {
   FullConfig,
   TestResult as PlaywrightTestResult,
   Reporter,
@@ -31,10 +31,9 @@ class E2EAutogenPlaywrightReporter implements Reporter {
       test.titlePath().find((t) => t.includes("TC-")) || test.title;
     const description = removeTestIdFromTitle(specTitle);
 
-    const manualSteps = getManualSteps().filter((s) =>
+    const manualSteps = extractManualSteps(result).filter((s) =>
       s.testId.startsWith(scenarioId)
     );
-    resetManualSteps();
 
     // Step 분석
     const flakySteps = getFlakyStepTitles(result);
@@ -241,12 +240,20 @@ type TManualStep = {
   description: string;
 };
 
-const manualSteps: TManualStep[] = [];
-
-const getManualSteps = () => manualSteps;
-const resetManualSteps = () => {
-  manualSteps.length = 0;
-};
+/**
+ * result.annotations 에 기록된 manual_only 정보를 추출한다.
+ * description 형식: `${testId}|${reason}`
+ */
+function extractManualSteps(result: PlaywrightTestResult): TManualStep[] {
+  const annotations = (result as any).annotations ?? [];
+  return annotations
+    .filter((a: any) => a.type === "manual_only")
+    .map((a: any) => {
+      const [testId, ...descParts] = (a.description ?? "").split("|");
+      return { testId, description: descParts.join("|") } as TManualStep;
+    })
+    .filter((m: TManualStep) => m.testId);
+}
 
 function updateSpecClassification(spec: TSpecGroup) {
   // 초기화
