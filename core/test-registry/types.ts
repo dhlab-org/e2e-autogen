@@ -7,3 +7,8 @@ export type TResultStatus =
   | "flaky"
   | "not_executed"
   | "manual_only";
+
+export type TResultWithDescription = {
+  status: TResultStatus;
+  description?: string;
+};

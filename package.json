@@ -19,7 +19,7 @@
       "types": "./dist/packages/playwright/reporter.d.ts"
     }
   },
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Google 스프레드시트 기반 시나리오를 Playwright 테스트 스텁 코드로 자동 생성하고, 테스트 실행 결과를 다시 시트에 업데이트하는 CLI 도구",
   "files": [
     "dist/**/*",
@@ -61,7 +61,7 @@
   },
   "peerDependencies": {
     "@msw/playwright": "^0.4.2",
-    "@playwright/test": ">=1.30.0",
+    "@playwright/test": "^1.52.0",
     "detox": ">=20.0.0"
   },
   "peerDependenciesMeta": {
