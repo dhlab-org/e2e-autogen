@@ -67,7 +67,8 @@ class TestRegistry implements TestRegistryContract {
         .map((row) => row[testIdCol] as string)
         .filter(Boolean);
 
-      const bucket = base.get(suiteId) ?? new Map();
+      const bucket =
+        base.get(suiteId) ?? new Map<TTestCaseId, TResultWithDescription>();
 
       tcIdsInSheet.forEach((tcId) => {
         if (!bucket.has(tcId)) {

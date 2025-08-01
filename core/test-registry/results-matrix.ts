@@ -27,7 +27,9 @@ class ResultsMatrix implements ResultsMatrixContract {
             if (!testId) continue;
             const suiteId = testId.split(".")[0];
 
-            const bucket = suiteMap.get(suiteId) ?? new Map();
+            const bucket =
+              suiteMap.get(suiteId) ??
+              new Map<TTestCaseId, TResultWithDescription>();
 
             // manual_only의 경우 description 정보도 함께 저장
             const resultWithDescription: TResultWithDescription = {
