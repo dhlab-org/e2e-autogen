@@ -1,4 +1,4 @@
-import {
+import type {
   FullConfig,
   TestResult as PlaywrightTestResult,
   Reporter,

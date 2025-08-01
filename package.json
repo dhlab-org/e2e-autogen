@@ -61,7 +61,7 @@
   },
   "peerDependencies": {
     "@msw/playwright": "^0.4.2",
-    "@playwright/test": ">=1.30.0",
+    "@playwright/test": "^1.52.0",
     "detox": ">=20.0.0"
   },
   "peerDependenciesMeta": {

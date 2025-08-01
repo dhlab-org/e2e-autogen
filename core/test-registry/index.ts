@@ -179,4 +179,5 @@ class TestRegistry implements TestRegistryContract {
   }
 }
 
-export { TestRegistry, type TestRegistryContract, type TResultStatus };
+export { TestRegistry };
+export * from "./types";
