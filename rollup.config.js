@@ -2,116 +2,123 @@ const resolve = require("@rollup/plugin-node-resolve");
 const commonjs = require("@rollup/plugin-commonjs");
 const typescript = require("@rollup/plugin-typescript");
 const json = require("@rollup/plugin-json");
+const dts = require("rollup-plugin-dts").default;
+const glob = require("fast-glob");
 
 module.exports = [
-  // CLI 도구 빌드
+  // config 폴더 빌드 (ESM + CJS)
   {
-    input: "core/cli.ts",
-    output: {
-      file: "dist/core/cli.cjs",
-      format: "cjs",
-    },
-    external: [],
-    plugins: [
-      json(),
-      resolve({
-        preferBuiltins: true,
-      }),
-      commonjs(),
-      typescript({
-        tsconfig: "./tsconfig.cli.json",
-      }),
-    ],
-  },
-  // define-config.ts 빌드
-  {
-    input: "core/define-config.ts",
+    input: glob.sync("config/**/*.ts"),
     output: [
       {
-        file: "dist/core/define-config.cjs",
-        format: "cjs",
+        dir: "dist/config",
+        format: "esm",
+        preserveModules: true,
+        entryFileNames: "[name].js",
       },
       {
-        file: "dist/core/define-config.js",
-        format: "esm",
+        dir: "dist/config",
+        format: "cjs",
+        preserveModules: true,
+        entryFileNames: "[name].cjs",
       },
     ],
+    external: ["fs", "path", "util", "url"],
+    inlineDynamicImports: true,
     plugins: [
-      resolve({ preferBuiltins: true }),
+      json(),
+      typescript({ tsconfig: "./tsconfig.json", declaration: false }),
+      resolve({ preferBuiltins: true, extensions: [".js", ".ts", ".json"] }),
       commonjs(),
-      typescript({
-        tsconfig: "./tsconfig.json",
-        declaration: false,
-        outDir: "dist/core",
-      }),
     ],
   },
-  // Playwright 패키지 빌드
+
+  // core 폴더 빌드 (ESM + CJS)
   {
-    input: "packages/playwright/reporter.ts",
-    output: {
-      file: "dist/packages/playwright/reporter.cjs",
-      format: "cjs",
-    },
+    input: glob.sync("core/**/*.ts"),
+    output: [
+      {
+        dir: "dist/core",
+        format: "esm",
+        preserveModules: true,
+        entryFileNames: "[name].js",
+      },
+      {
+        dir: "dist/core",
+        format: "cjs",
+        preserveModules: true,
+        entryFileNames: "[name].cjs",
+      },
+    ],
+    external: ["fs", "path", "child_process", "util", "url"],
+    inlineDynamicImports: true,
     plugins: [
-      resolve({ preferBuiltins: true }),
+      json(),
+      typescript({ tsconfig: "./tsconfig.json", declaration: false }),
+      resolve({ preferBuiltins: true, extensions: [".js", ".ts", ".json"] }),
       commonjs(),
-      typescript({
-        tsconfig: "./tsconfig.json",
-        declaration: false,
-        outDir: "dist/packages/playwright",
+    ],
+  },
+
+  // packages 폴더 빌드 (ESM + CJS)
+  {
+    input: glob.sync("packages/playwright/**/*.ts"),
+    output: [
+      {
+        dir: "dist/packages/playwright",
+        format: "esm",
+        preserveModules: true,
+        entryFileNames: "[name].js",
+      },
+      {
+        dir: "dist/packages/playwright",
+        format: "cjs",
+        preserveModules: true,
+        entryFileNames: "[name].cjs",
+      },
+    ],
+    external: [
+      "@playwright/test",
+      "@msw/playwright",
+      "fs-extra",
+      "fs",
+      "path",
+      "util",
+      "url",
+      "child_process",
+    ],
+    inlineDynamicImports: true,
+    plugins: [
+      json(),
+      typescript({ tsconfig: "./tsconfig.json", declaration: false }),
+      resolve({ preferBuiltins: true, extensions: [".js", ".ts", ".json"] }),
+      commonjs(),
+    ],
+  },
+
+  // 타입 정의: config
+  {
+    input: "config/index.ts",
+    output: { file: "dist/config/index.d.ts", format: "esm" },
+    plugins: [
+      dts({
+        compilerOptions: {
+          baseUrl: ".",
+        },
       }),
     ],
   },
-  // {
-  //   input: "packages/playwright/index.ts",
-  //   output: [
-  //     {
-  //       file: "dist/packages/playwright/index.js",
-  //       format: "esm",
-  //     },
-  //     {
-  //       file: "dist/packages/playwright/index.cjs",
-  //       format: "cjs",
-  //     },
-  //   ],
-  //   external: ["@playwright/test"],
-  //   plugins: [
-  //     json(),
-  //     resolve({ extensions: [".js", ".ts"] }),
-  //     commonjs(),
-  //     typescript({
-  //       tsconfig: "./tsconfig.json",
-  //       declaration: true,
-  //       declarationDir: "dist/packages/playwright",
-  //       outDir: "dist/packages/playwright",
-  //     }),
-  //   ],
-  // },
-  // // Detox 패키지 빌드
-  // {
-  //   input: "packages/detox/index.ts",
-  //   output: [
-  //     {
-  //       file: "dist/packages/detox/index.js",
-  //       format: "esm",
-  //     },
-  //     {
-  //       file: "dist/packages/detox/index.cjs",
-  //       format: "cjs",
-  //     },
-  //   ],
-  //   external: ["detox"],
-  //   plugins: [
-  //     json(),
-  //     resolve({ extensions: [".js", ".ts"] }),
-  //     commonjs(),
-  //     typescript({
-  //       tsconfig: "./tsconfig.json",
-  //       declaration: true,
-  //       declarationDir: "dist/packages/detox",
-  //       outDir: "dist/packages/detox",
-  //     }),
-  //   ],
-  // },
+
+  // 타입 정의: packages
+  {
+    input: "packages/playwright/index.ts",
+    output: { file: "dist/packages/playwright/index.d.ts", format: "esm" },
+    plugins: [
+      dts({
+        compilerOptions: {
+          baseUrl: ".",
+        },
+      }),
+    ],
+  },
 ];

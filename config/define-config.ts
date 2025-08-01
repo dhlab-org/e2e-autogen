@@ -1,4 +1,4 @@
-import type { TE2EAutogenConfig } from "./config";
+import type { TE2EAutogenConfig } from "./types";
 
 const defineConfig = (config: TUserConfig): TE2EAutogenConfig => {
   return {
@@ -20,10 +20,11 @@ const defineConfig = (config: TUserConfig): TE2EAutogenConfig => {
       tag: "G",
       comment: "H",
     },
+    mswHandlersFile: config.mswHandlersFile ?? "./msw/__handlers__/index.ts",
   };
 };
 
-export default defineConfig;
+export { defineConfig };
 
 type TUserConfig = {
   sheetsUrl: string;
@@ -32,4 +33,5 @@ type TUserConfig = {
   jsonReporterFile?: string;
   credentialsFile?: string;
   googleSheetColumns?: TE2EAutogenConfig["googleSheetColumns"];
+  mswHandlersFile?: string;
 };

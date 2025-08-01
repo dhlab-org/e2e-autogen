@@ -1,5 +1,5 @@
 import { google, sheets_v4 } from "googleapis";
-import { TGoogleSheetColumns } from "../config";
+import { TGoogleSheetColumns } from "../../config";
 import { CoverageSheet, CoverageSheetContract } from "./coverage-sheet";
 import {
   SpreadsheetSheet,

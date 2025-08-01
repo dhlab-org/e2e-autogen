@@ -1,9 +1,11 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
+    "module": "NodeNext",
     "declaration": false,
     "declarationMap": false,
-    "outDir": "./dist"
+    "outDir": "./dist",
+    "baseUrl": "."
   },
   "include": ["core/cli.ts"],
   "exclude": ["node_modules", "dist", ".yarn"]

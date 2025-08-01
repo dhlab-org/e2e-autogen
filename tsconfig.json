@@ -3,7 +3,6 @@
     "target": "ES2020",
     "module": "NodeNext",
     "lib": ["ES2020"],
-    "outDir": "./dist",
     "rootDir": "./",
     "strict": true,
     "esModuleInterop": true,
@@ -11,11 +10,17 @@
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
     "declaration": true,
-    "declarationMap": true,
-    "sourceMap": true,
+    "declarationMap": false,
+    "sourceMap": false,
     "moduleResolution": "NodeNext",
-    "allowSyntheticDefaultImports": true
+    "allowSyntheticDefaultImports": true,
+    "baseUrl": ".",
+    "paths": {
+      "@config/*": ["./config/*"],
+      "@core/*": ["./core/*"],
+      "@packages/*": ["./packages/*"]
+    }
   },
-  "include": ["core/**/*", "packages/**/*"],
+  "include": ["core/**/*", "packages/**/*", "config/**/*", "test/**/*"],
   "exclude": ["node_modules", "dist", ".yarn"]
 }

@@ -1,4 +1,4 @@
-import { TResultStatus } from "../config";
+import { TResultStatus } from "../test-registry";
 import { GoogleSpreadsheetsContract } from "../google-spreadsheets";
 
 type TestCoverageContract = {

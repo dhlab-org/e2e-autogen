@@ -1,5 +1,5 @@
 import { match } from "ts-pattern";
-import { TE2EAutogenConfig } from "../config";
+import { TE2EAutogenConfig } from "../../config";
 import { TFlag, TGenerateOptions, TSubCommand, TUpdateOptions } from "./types";
 
 type CommandContract = {
