@@ -1,7 +1,7 @@
 import { test as base } from "@playwright/test";
 
 type TFixtures = {
-  manual: (title: string, reason: string) => Promise<void>;
+  manual: (title: string, reason?: string) => Promise<void>;
 };
 
 /**
@@ -9,7 +9,7 @@ type TFixtures = {
  */
 const manualTest = base.extend<TFixtures>({
   manual: async ({}, use) => {
-    await use(async (title: string, reason: string) => {
+    await use(async (title: string, reason?: string) => {
       // (1) TC ID 추출 – "[TC-x.x]" 형태를 파싱한다.
       const match = title.match(/\[(TC-[\d.]+)]/);
       const testId = match ? match[1] : "";
@@ -18,7 +18,7 @@ const manualTest = base.extend<TFixtures>({
       await base.step(title, async () => {
         base.info().annotations.push({
           type: "manual_only",
-          description: `${testId}|${reason}`,
+          description: `${testId}|${reason ?? ""}`,
         });
       });
     });
