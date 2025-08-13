@@ -1,3 +1,5 @@
+import fs from "node:fs";
+import path from "node:path";
 import type {
   FullConfig,
   TestResult as PlaywrightTestResult,
@@ -6,8 +8,6 @@ import type {
   TestCase,
   TestStep,
 } from "@playwright/test/reporter";
-import fs from "fs";
-import path from "path";
 
 class E2EAutogenPlaywrightReporter implements Reporter {
   private outputFile: string;

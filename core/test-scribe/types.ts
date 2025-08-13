@@ -7,8 +7,8 @@ export type TScenarioData = {
 export type TStepData = {
   testId: string;
   uiPath: string;
-  when: string;
-  then: string;
+  action: string;
+  expected: string;
 };
 
 export type TPrefix = string; // TC-x

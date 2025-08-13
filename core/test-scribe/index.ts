@@ -1,5 +1,5 @@
 import { match } from "ts-pattern";
-import { GoogleSpreadsheetsContract } from "../google-spreadsheets";
+import type { GoogleSpreadsheetsContract } from "../google-spreadsheets";
 import { DetoxTemplate } from "./detox-template";
 import { PlaywrightTemplate } from "./playwright-template";
 import { Scenario } from "./scenario";

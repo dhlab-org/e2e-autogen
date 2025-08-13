@@ -1,8 +1,8 @@
-import { loadUserConfig } from "../../../config";
+import path from "node:path";
+import { pathToFileURL } from "node:url";
 import { createNetworkFixture, type NetworkFixture } from "@msw/playwright";
-import { test as base, Page } from "@playwright/test";
-import path from "path";
-import { pathToFileURL } from "url";
+import { test as base, type Page } from "@playwright/test";
+import { loadUserConfig } from "../../../config";
 
 type TFixtures = {
   network: NetworkFixture;

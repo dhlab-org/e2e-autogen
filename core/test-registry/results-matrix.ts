@@ -1,5 +1,9 @@
-import { TResultStatus, TResultWithDescription } from "./types";
-import { TTestCaseId, TTestSuiteId } from "./types";
+import type {
+  TResultStatus,
+  TResultWithDescription,
+  TTestCaseId,
+  TTestSuiteId,
+} from "./types";
 
 type ResultsMatrixContract = {
   resultsPerSuite(

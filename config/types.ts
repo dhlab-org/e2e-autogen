@@ -12,8 +12,8 @@ export type TGoogleSheetColumns = {
   scenarioId: string;
   scenarioDescription: string;
   uiPath: string;
-  when: string;
-  then: string;
+  action: string;
+  expected: string;
   testId: string;
   tag: string;
   comment: string;

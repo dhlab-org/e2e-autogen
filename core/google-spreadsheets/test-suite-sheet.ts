@@ -1,8 +1,8 @@
-import { sheets_v4 } from "googleapis";
-import { TGoogleSheetColumns } from "../../config";
+import type { sheets_v4 } from "googleapis";
+import type { TGoogleSheetColumns } from "../../config";
 import {
   SpreadsheetSheet,
-  SpreadsheetSheetContract,
+  type SpreadsheetSheetContract,
 } from "./spreadsheet-sheet";
 
 type TestSuiteSheetContract = SpreadsheetSheetContract & {

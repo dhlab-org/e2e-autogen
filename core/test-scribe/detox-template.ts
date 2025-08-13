@@ -1,6 +1,6 @@
+import * as path from "node:path";
 import * as fs from "fs-extra";
-import * as path from "path";
-import { TPrefix, TScenarioData, TStepData } from "./types";
+import type { TPrefix, TScenarioData, TStepData } from "./types";
 
 type DetoxTemplateContract = {
   write(targetDir: string): Promise<void>;
@@ -89,19 +89,19 @@ class DetoxTemplate implements DetoxTemplateContract {
 
   #stepCode(step: TStepData): string {
     const hasUiPath = step.uiPath.trim().length > 0;
-    const hasWhen = step.when.trim().length > 0;
+    const hasWhen = step.action.trim().length > 0;
     const stepTitle = this.#sanitizeText(
       hasWhen
-        ? `[${step.testId}] ${step.when} -> ${step.then}`
-        : `[${step.testId}] ${step.then}`,
+        ? `[${step.testId}] ${step.action} -> ${step.expected}`
+        : `[${step.testId}] ${step.expected}`,
       true
     );
 
     const uiPathSection = hasUiPath ? `// 📍 UI Path: ${step.uiPath}\n` : "";
     const whenSection = hasWhen
-      ? `// 🎬 When: ${this.#sanitizeText(step.when)}\n`
+      ? `// 🎬 When: ${this.#sanitizeText(step.action)}\n`
       : "";
-    const thenSection = `// ✅ Then: ${this.#sanitizeText(step.then)}\n`;
+    const thenSection = `// ✅ Then: ${this.#sanitizeText(step.expected)}\n`;
 
     return `    await step.test("${stepTitle}", async () => {
       ${uiPathSection}
