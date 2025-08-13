@@ -42,6 +42,7 @@
     "tsx": "^4.6.0"
   },
   "devDependencies": {
+    "@biomejs/biome": "2.1.4",
     "@msw/playwright": "^0.4.2",
     "@playwright/test": "^1.52.0",
     "@rollup/plugin-commonjs": "^28.0.6",
