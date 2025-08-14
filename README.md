@@ -104,8 +104,8 @@ export default {
     scenarioId: "A", // 시나리오 ID 컬럼
     scenarioDescription: "B", // 시나리오 설명 컬럼
     uiPath: "C", // UI 경로 컬럼
-    when: "D", // 액션/조건 컬럼
-    then: "E", // 기대결과 컬럼
+    action: "D", // 액션/조건 컬럼
+    expected: "E", // 기대결과 컬럼
     testId: "F", // 테스트 ID 컬럼
     tag: "G", // 태그 컬럼
     comment: "H", // 코멘트 컬럼
