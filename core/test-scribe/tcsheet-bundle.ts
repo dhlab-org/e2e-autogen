@@ -1,5 +1,5 @@
-import { GoogleSpreadsheetsContract } from "../google-spreadsheets";
-import { TPrefix, TRow } from "./types";
+import type { GoogleSpreadsheetsContract } from "../google-spreadsheets";
+import type { TPrefix, TRow } from "./types";
 
 type TCSheetBundleContract = {
   rowsPerPrefix(): Promise<Map<TPrefix, TRow[]>>;

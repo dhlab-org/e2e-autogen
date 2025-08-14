@@ -1,10 +1,10 @@
 import { match } from "ts-pattern";
-import { TE2EAutogenConfig } from "../../config";
+import type { TE2EAutogenConfig } from "../../config";
 import { authorizedGoogleSpreadsheets } from "../google-spreadsheets";
 import { TestCoverage } from "../test-coverage";
 import { TestRegistry } from "../test-registry";
 import { TestScribe } from "../test-scribe";
-import { Command, CommandContract } from "./command";
+import { Command, type CommandContract } from "./command";
 
 type CliApplicationContract = {
   run(): Promise<void>;

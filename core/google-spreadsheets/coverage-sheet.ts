@@ -1,5 +1,5 @@
-import { sheets_v4 } from "googleapis";
-import {
+import type { sheets_v4 } from "googleapis";
+import type {
   TExecutionSummary,
   TOverallSummary,
   TSuiteSummary,
@@ -7,7 +7,7 @@ import {
 } from "../test-coverage";
 import {
   SpreadsheetSheet,
-  SpreadsheetSheetContract,
+  type SpreadsheetSheetContract,
 } from "./spreadsheet-sheet";
 
 type CoverageSheetContract = SpreadsheetSheetContract & {
@@ -15,15 +15,6 @@ type CoverageSheetContract = SpreadsheetSheetContract & {
 };
 
 class CoverageSheet extends SpreadsheetSheet implements CoverageSheetContract {
-  constructor(
-    spreadsheetId: string,
-    gid: string,
-    sheets: sheets_v4.Sheets,
-    rawSheets?: () => Promise<sheets_v4.Schema$Sheet[]>
-  ) {
-    super(spreadsheetId, gid, sheets, rawSheets);
-  }
-
   async updateCoverage({
     summary,
     summaryPerSuite,

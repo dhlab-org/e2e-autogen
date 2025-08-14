@@ -1,5 +1,5 @@
-import { GoogleSpreadsheetsContract } from "../google-spreadsheets";
-import { TPrefix, TRow, TScenarioData } from "./types";
+import type { GoogleSpreadsheetsContract } from "../google-spreadsheets";
+import type { TPrefix, TRow, TScenarioData } from "./types";
 
 type ScenarioContract = {
   scenariosPerPrefix(
@@ -47,8 +47,8 @@ class Scenario implements ScenarioContract {
         step: {
           testId: row[this.#sheet.columnNumberOf("testId")] || "",
           uiPath: row[this.#sheet.columnNumberOf("uiPath")] || "",
-          when: row[this.#sheet.columnNumberOf("when")] || "",
-          then: row[this.#sheet.columnNumberOf("then")] || "",
+          action: row[this.#sheet.columnNumberOf("action")] || "",
+          expected: row[this.#sheet.columnNumberOf("expected")] || "",
         },
       }))
       .filter((item) => item.scenarioId);

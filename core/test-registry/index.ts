@@ -1,9 +1,13 @@
-import * as fs from "fs-extra";
-import { TResultStatus, TResultWithDescription } from "./types";
-import { GoogleSpreadsheetsContract } from "../google-spreadsheets";
-import { ResultsMatrix } from "./results-matrix";
-import { TTestCaseId, TTestSuiteId } from "./types";
 import chalk from "chalk";
+import * as fs from "fs-extra";
+import type { GoogleSpreadsheetsContract } from "../google-spreadsheets";
+import { ResultsMatrix } from "./results-matrix";
+import type {
+  TResultStatus,
+  TResultWithDescription,
+  TTestCaseId,
+  TTestSuiteId,
+} from "./types";
 
 type TestRegistryContract = {
   logResults(

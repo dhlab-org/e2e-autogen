@@ -1,10 +1,10 @@
-import {
+import type { GoogleSpreadsheetsContract } from "../google-spreadsheets";
+import type {
   TResultStatus,
   TResultWithDescription,
-  TTestSuiteId,
   TTestCaseId,
+  TTestSuiteId,
 } from "../test-registry";
-import { GoogleSpreadsheetsContract } from "../google-spreadsheets";
 
 type TestCoverageContract = {
   update(googleSpreadsheets: GoogleSpreadsheetsContract): Promise<void>;
