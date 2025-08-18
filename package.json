@@ -17,6 +17,12 @@
     "./playwright/reporter": {
       "require": "./dist/packages/playwright/reporter.cjs",
       "types": "./dist/packages/playwright/reporter.d.ts"
+    },
+    "./socketio": {
+      "import": "./dist/packages/socketio/index.js",
+      "require": "./dist/packages/socketio/index.cjs",
+      "types": "./dist/packages/socketio/index.d.ts",
+      "default": "./dist/packages/socketio/index.cjs"
     }
   },
   "version": "0.1.9",

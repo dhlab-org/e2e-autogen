@@ -95,6 +95,34 @@ module.exports = [
       commonjs(),
     ],
   },
+  {
+    input: glob.sync("packages/socketio/**/*.ts"),
+    output: [
+      {
+        dir: "dist/packages/socketio",
+        format: "esm",
+        preserveModules: true,
+        entryFileNames: "[name].js",
+      },
+      {
+        dir: "dist/packages/socketio",
+        format: "cjs",
+        preserveModules: true,
+        entryFileNames: "[name].cjs",
+      },
+    ],
+    external: [
+      "socket.io",
+      "fs",
+    ],
+    inlineDynamicImports: true,
+    plugins: [
+      json(),
+      typescript({ tsconfig: "./tsconfig.json", declaration: false }),
+      resolve({ preferBuiltins: true, extensions: [".js", ".ts", ".json"] }),
+      commonjs(),
+    ],
+  },
 
   // 타입 정의: config
   {
@@ -113,6 +141,17 @@ module.exports = [
   {
     input: "packages/playwright/index.ts",
     output: { file: "dist/packages/playwright/index.d.ts", format: "esm" },
+    plugins: [
+      dts({
+        compilerOptions: {
+          baseUrl: ".",
+        },
+      }),
+    ],
+  },
+  {
+    input: "packages/socketio/index.ts",
+    output: { file: "dist/packages/socketio/index.d.ts", format: "esm" },
     plugins: [
       dts({
         compilerOptions: {
