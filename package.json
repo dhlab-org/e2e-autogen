@@ -23,7 +23,6 @@
   "description": "Google 스프레드시트 기반 시나리오를 Playwright 테스트 스텁 코드로 자동 생성하고, 테스트 실행 결과를 다시 시트에 업데이트하는 CLI 도구",
   "files": [
     "dist/**/*",
-    "packages/**/*",
     "README.md",
     "LICENSE"
   ],
@@ -55,6 +54,7 @@
     "fast-glob": "^3.3.3",
     "rollup": "^4.44.0",
     "rollup-plugin-dts": "^6.2.1",
+    "socket.io": "^4.8.1",
     "ts-pattern": "^5.7.1",
     "tsx": "^4.6.0",
     "typescript": "^5",
@@ -63,7 +63,8 @@
   "peerDependencies": {
     "@msw/playwright": "^0.4.2",
     "@playwright/test": "^1.52.0",
-    "detox": ">=20.0.0"
+    "detox": ">=20.0.0",
+    "socket.io": "^4.8.1"
   },
   "peerDependenciesMeta": {
     "@msw/playwright": {
@@ -73,6 +74,9 @@
       "optional": true
     },
     "detox": {
+      "optional": true
+    },
+    "socket.io": {
       "optional": true
     }
   },
