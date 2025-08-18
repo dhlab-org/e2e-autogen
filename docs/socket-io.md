@@ -4,13 +4,13 @@
 
 ## 예시
 ```ts
-import { makeMockSocketServer, addGlobalDelay } from "@dhlab/e2e-autogen/socket";
+import { join } from 'node:path';
+import { makeMockSocketServer, addGlobalDelay } from "@dhlab/e2e-autogen/socketio";
 
 const server = makeMockSocketServer({
-  recordingPath: "./rec.json",
+  recordingPath: join(__dirname, './recording.json'),
   port: 64436,
   speed: 1,
-  transformers: [addGlobalDelay(300)],
 });
 
 await server.start();
