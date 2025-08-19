@@ -79,7 +79,6 @@ module.exports = [
     ],
     external: [
       "@playwright/test",
-      "@msw/playwright",
       "fs-extra",
       "fs",
       "path",
