@@ -4,11 +4,11 @@
 
 ## 예시
 ```ts
-import { join } from 'node:path';
-import { makeMockSocketServer, addGlobalDelay } from "@dhlab/e2e-autogen/socketio";
+import { makeMockSocketServer } from "@dhlab/e2e-autogen/socketio";
+import recordingData from './recording.json';
 
 const server = makeMockSocketServer({
-  recordingPath: join(__dirname, './recording.json'),
+  data: recordingData,
   port: 64436,
   speed: 1,
 });

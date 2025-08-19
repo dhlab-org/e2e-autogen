@@ -20,7 +20,6 @@ const defineConfig = (config: TUserConfig): TE2EAutogenConfig => {
       tag: "G",
       comment: "H",
     },
-    mswHandlersFile: config.mswHandlersFile ?? "./msw/__handlers__/index.ts",
   };
 };
 
@@ -33,5 +32,4 @@ type TUserConfig = {
   jsonReporterFile?: string;
   credentialsFile?: string;
   googleSheetColumns?: TE2EAutogenConfig["googleSheetColumns"];
-  mswHandlersFile?: string;
 };

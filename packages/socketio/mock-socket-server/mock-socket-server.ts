@@ -1,4 +1,4 @@
-import type { RecordingSourceContract } from "./recording-source-file";
+import type { RecordingSourceContract } from "./recording-source";
 import type { ScenarioBuilderContract } from "./scenario-builder";
 import type { SocketPlayerContract } from "./socketio-player";
 

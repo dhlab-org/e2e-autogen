@@ -1,12 +1,12 @@
 import { createServer } from "node:http";
 import { Server as IoServer } from "socket.io";
 import { MockSocketServer } from "./mock-socket-server";
-import { FileRecordingSource } from "./recording-source-file";
+import { RecordingSource } from "./recording-source";
 import { SocketScenarioBuilder } from "./scenario-builder";
 import { SocketIoPlayer } from "./socketio-player";
 
 const makeMockSocketServer = ({
-  recordingPath,
+  data,
   port,
   speed,
 }: TArgs): MockSocketServer => {
@@ -16,7 +16,7 @@ const makeMockSocketServer = ({
     transports: ["websocket", "polling"],
   });
 
-  const source = new FileRecordingSource({ path: recordingPath });
+  const source = new RecordingSource({ data });
   const builder = new SocketScenarioBuilder({ defaultSpeed: 1 });
   const player = new SocketIoPlayer({ httpServer: http, io, port });
 
@@ -31,7 +31,7 @@ const makeMockSocketServer = ({
 export { makeMockSocketServer };
 
 type TArgs = {
-  recordingPath: string;
+  data: unknown;
   port: number;
   speed?: number;
 };

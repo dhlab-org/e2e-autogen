@@ -5,7 +5,6 @@ export type TE2EAutogenConfig = {
   jsonReporterFile: string;
   credentialsFile: string;
   googleSheetColumns: TGoogleSheetColumns;
-  mswHandlersFile: string;
 };
 
 export type TGoogleSheetColumns = {
