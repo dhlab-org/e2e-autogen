@@ -145,12 +145,15 @@ __metadata:
     "@msw/playwright": ^0.4.2
     "@playwright/test": ^1.52.0
     detox: ">=20.0.0"
+    socket.io: ^4.8.1
   peerDependenciesMeta:
     "@msw/playwright":
       optional: true
     "@playwright/test":
       optional: true
     detox:
+      optional: true
+    socket.io:
       optional: true
   bin:
     e2e-autogen: dist/core/cli.cjs
